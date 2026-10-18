@@ -232,15 +232,21 @@ def build_features_from_df(df: pd.DataFrame, cfg: Dict[str, Any]) -> pd.DataFram
         baseline = baseline_early.where(within_bl, baseline_late)
         cols[f"{col}__dbase"] = (locf - baseline).astype("float32")
 
+    # Forward fill raw unstandardized columns if present (for R2 per-hospital standardization)
+    for col in MEASURED:
+        raw_col = f"raw__{col}"
+        if raw_col in df.columns:
+            cols[raw_col] = df[raw_col].groupby(pid).ffill().astype("float32")
+
     # ── F8: Clinical indices ──
-    hr_l = cols["HR"]
-    sbp_l = cols["SBP"]
-    map_l = cols["MAP"]
-    dbp_l = cols["DBP"]
-    o2_l = cols["O2Sat"]
-    fio2_l = cols["FiO2"]
-    bun_l = cols["BUN"]
-    cr_l = cols["Creatinine"]
+    hr_l = cols.get("raw__HR", cols["HR"])
+    sbp_l = cols.get("raw__SBP", cols["SBP"])
+    map_l = cols.get("raw__MAP", cols["MAP"])
+    dbp_l = cols.get("raw__DBP", cols["DBP"])
+    o2_l = cols.get("raw__O2Sat", cols["O2Sat"])
+    fio2_l = cols.get("raw__FiO2", cols["FiO2"])
+    bun_l = cols.get("raw__BUN", cols["BUN"])
+    cr_l = cols.get("raw__Creatinine", cols["Creatinine"])
 
     with np.errstate(divide="ignore", invalid="ignore"):
         cols["idx__shock_index"] = (hr_l / sbp_l).astype("float32")
@@ -249,17 +255,19 @@ def build_features_from_df(df: pd.DataFrame, cfg: Dict[str, Any]) -> pd.DataFram
         cols["idx__bun_cr"] = (bun_l / cr_l).astype("float32")
         cols["idx__sf_ratio"] = (o2_l / fio2_l).astype("float32")
 
-    both_obs = df["HR"].notna() & df["SBP"].notna()
-    si_raw = (df["HR"] / df["SBP"]).where(both_obs)
+    hr_raw = df["raw__HR"] if "raw__HR" in df.columns else df["HR"]
+    sbp_raw = df["raw__SBP"] if "raw__SBP" in df.columns else df["SBP"]
+    both_obs = hr_raw.notna() & sbp_raw.notna()
+    si_raw = (hr_raw / sbp_raw).where(both_obs)
     cols["idx__shock_index__slope_6h"] = _vectorized_rolling_slope(si_raw, hours, pid, 6, min_pts=3)
 
     # ── F9: Clinical scores ──
-    temp_l = cols["Temp"]
-    resp_l = cols["Resp"]
-    paco2_l = cols["PaCO2"]
-    wbc_l = cols["WBC"]
-    plt_l = cols["Platelets"]
-    bili_l = cols["Bilirubin_total"]
+    temp_l = cols.get("raw__Temp", cols["Temp"])
+    resp_l = cols.get("raw__Resp", cols["Resp"])
+    paco2_l = cols.get("raw__PaCO2", cols["PaCO2"])
+    wbc_l = cols.get("raw__WBC", cols["WBC"])
+    plt_l = cols.get("raw__Platelets", cols["Platelets"])
+    bili_l = cols.get("raw__Bilirubin_total", cols["Bilirubin_total"])
 
     sirs = pd.Series(0, index=df.index, dtype="int8")
     sirs += ((temp_l > 38) | (temp_l < 36)).fillna(False).astype("int8")
@@ -369,8 +377,14 @@ def build_features(
     logger.info("Feature matrix: %s", features_df.shape)
 
     feature_cols = [
-        c for c in features_df.columns if c not in CARRY_COLS and c not in FORBIDDEN_FEATURE_NAMES
+        c
+        for c in features_df.columns
+        if c not in CARRY_COLS and c not in FORBIDDEN_FEATURE_NAMES and not c.startswith("raw__")
     ]
+    raw_cols_to_drop = [c for c in features_df.columns if c.startswith("raw__")]
+    if raw_cols_to_drop:
+        features_df = features_df.drop(columns=raw_cols_to_drop)
+
     feature_list_path = models_dir / "feature_list.json"
     with open(feature_list_path, "w") as f:
         json.dump(feature_cols, f, indent=2)

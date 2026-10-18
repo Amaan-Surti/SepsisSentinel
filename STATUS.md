@@ -2,7 +2,7 @@
 Last updated: 2026-10-18 by Antigravity
 
 ## Current task
-Phase 3 — COMPLETED (Features, baselines, tuned 5-fold CV, ablations, final dev model trained; ready for Phase 4)
+Phase 5 — Calibration, alert policy, explainability, and final evaluation
 
 ## Task board
 | Task | Status | Notes |
@@ -26,7 +26,7 @@ Phase 3 — COMPLETED (Features, baselines, tuned 5-fold CV, ablations, final de
 | P3.T5 LGBM tuned 5-fold | DONE | AUROC=0.8447, AUPRC=0.1223, utility=0.4262 (policy: thresh=0.05, k=1, s=0, sens=86.10%) |
 | P3.T6 ablations | DONE | 4 ablations evaluated; no_missingness drops utility from 0.4262 to 0.4039 (table & figure saved) |
 | P3.T7 final dev model | DONE | Trained on all 1,241,132 dev rows with tuned params (303 rounds); models/final/ saved |
-| P4.T1–T4 cross-hospital | TODO | |
+| P4.T1–T4 cross-hospital | DONE | R0–R3 evaluated; severe transfer drop (A->B: 0.4405->0.2963, B->A: 0.3759->0.3188); table and figures saved |
 | P5.T1 calibration | TODO | |
 | P5.T2 policy | TODO | |
 | P5.T3 SHAP | TODO | |
@@ -48,6 +48,10 @@ Phase 3 — COMPLETED (Features, baselines, tuned 5-fold CV, ablations, final de
 - Dev OOF (tuned LGBM): AUROC 0.8447 / AUPRC 0.1223 / utility 0.4262 (sens 86.10%, lead 24.0h, 0.48 FP/day)
 - Policy: threshold 0.05 / k 1 / sticky 0 (tuned model)
 - Cross-hospital A→B, B→A utility:
+  - R0 Full: A internal = 0.4405, B internal = 0.3759, A→B = 0.2963 (Δ -0.1442), B→A = 0.3188 (Δ -0.0571)
+  - R1 No Missingness: A int = 0.4231, B int = 0.3940, A→B = 0.2931, B→A = 0.3146
+  - R2 Standardized: A int = 0.4349, B int = 0.3546, A→B = 0.2882, B→A = 0.3224
+  - R3 No Admin Timing: A int = 0.3821, B int = 0.3737, A→B = 0.2502, B→A = 0.2903
 - LOCKBOX TEST: utility [CI] / AUROC / AUPRC / sensitivity / lead time / false alerts per day:
 
 ## EDA findings (real verified numbers)
@@ -67,9 +71,15 @@ Phase 3 — COMPLETED (Features, baselines, tuned 5-fold CV, ablations, final de
 - P3 feature engineering vectorized with zero data leakage (10 tests pass, causality verified on 20 patients).
 - Optuna tuned 40 trials yielding Trial 13 best params (AUPRC=0.1342 vs 0.1264 default); tuned 5-fold CV improved utility to 0.4262 and ECE from 0.0412 to 0.0182.
 - Ablations confirmed missingness signals contribute significant utility (+0.0223); final dev model trained for 303 rounds on all dev patients.
+- **Phase 4 Cross-Hospital Generalization Interpretation (§8 P4.T4):**
+  1. *Substantial performance drop on zero-shot transfer:* Normalized utility drops by 32.7% for A→B (0.4405 to 0.2963) and 15.2% for B→A (0.3759 to 0.3188) under full features (R0).
+  2. *Severe alerting policy mismatch:* Deploying Hospital B's lower alert threshold (0.03) to Hospital A inflates false alerts to 0.93 alerts/patient-day (nearly 3x Hospital B's internal rate of 0.33), whereas deploying A's policy on B depresses sensitivity to 66.29%.
+  3. *Missingness alone does not drive the gap:* Removing missingness features (R1) yields similar transfer utility (A→B: 0.2931, B→A: 0.3146), proving the transfer gap is not merely artifactual from EHR ordering frequencies.
+  4. *Target standardization does not rescue utility:* Unsupervised per-hospital z-score normalization (R2) yields 0.2882 (A→B) and 0.3224 (B→A), showing distribution alignment of measured vitals/labs cannot overcome the structural domain shift.
+  5. *Administrative timing is informative:* Removing stay timing features (R3: HospAdmTime, ICULOS) harms internal and external performance alike (A internal 0.3821; A→B 0.2502), showing stay progression is critical clinical context.
 
 ## Blockers / questions for the human
-- None. Phase 3 completed according to plan.
+- None. Ready for Phase 5 (calibration, alert policy, SHAP, subgroups, and single lockbox test).
 
 ## Experiment log
 | Date | Run | Change | Key metric | Kept? |
@@ -83,4 +93,8 @@ Phase 3 — COMPLETED (Features, baselines, tuned 5-fold CV, ablations, final de
 | 2026-10-18 | P3.T5 | LightGBM tuned 5-fold CV | OOF AUROC=0.8447, utility=0.4262 (s=0, k=1, th=0.05) | Yes |
 | 2026-10-18 | P3.T6 | Feature-group ablations | no_missingness utility drops from 0.4262 to 0.4039 | Yes |
 | 2026-10-18 | P3.T7 | Final dev model training | 303 rounds on 1,241,132 dev rows, models/final/ saved | Yes |
+| 2026-10-18 | P4.T1 | Internal hospital CV (R0) | A internal u=0.4405; B internal u=0.3759 | Yes |
+| 2026-10-18 | P4.T2 | External zero-shot transfer (R0) | A->B u=0.2963 (Δ -0.1442); B->A u=0.3188 (FP jumps to 0.93/day) | Yes |
+| 2026-10-18 | P4.T3 | Robustness variants (R1, R2, R3) | R1 A->B u=0.2931; R2 A->B u=0.2882; R3 A->B u=0.2502 | Yes |
+
 
