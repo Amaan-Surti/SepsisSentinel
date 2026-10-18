@@ -1,0 +1,70 @@
+seed: 42
+paths:
+  raw_a: data/raw/training_setA
+  raw_b: data/raw/training_setB
+  all_rows: data/interim/all_rows.parquet
+  clean_rows: data/interim/clean_rows.parquet
+  features: data/processed/features.parquet
+  lockbox: data/splits/lockbox.csv
+  folds: data/splits/folds.csv
+  models: models
+  figures: reports/figures
+  tables: reports/tables
+split:
+  lockbox_frac: 0.20
+  n_folds: 5
+utility:
+  dt_early: -12
+  dt_optimal: -6
+  dt_late: 3
+  max_u_tp: 1.0
+  min_u_fn: -2.0
+  u_fp: -0.05
+  u_tn: 0.0
+features:
+  vital_windows: [6, 12, 24]
+  lab_windows: [24]
+  tsl_cap_hours: 72
+  baseline_hours: 6
+lgbm:
+  objective: binary
+  learning_rate: 0.03
+  num_leaves: 63
+  max_depth: -1
+  min_child_samples: 200
+  feature_fraction: 0.7
+  bagging_fraction: 0.8
+  bagging_freq: 1
+  lambda_l1: 0.0
+  lambda_l2: 1.0
+  scale_pos_weight: 5.0
+  max_bin: 255
+  num_boost_round: 5000
+  early_stopping_rounds: 200
+  metric: average_precision
+  verbose: -1
+  n_jobs: -1
+tuning:
+  n_trials: 40
+  timeout_hours: 3
+  folds_used: [0, 1, 2]
+alert_policy:
+  threshold_grid_start: 0.01
+  threshold_grid_stop: 0.99
+  threshold_grid_step: 0.01
+  k_consecutive: [1, 2, 3]
+  sticky_hours: [0, 6]
+gru:
+  hidden: 128
+  layers: 2
+  dropout: 0.2
+  input_proj: 128
+  batch_size: 64
+  lr: 0.001
+  weight_decay: 0.0001
+  max_epochs: 30
+  patience: 5
+  grad_clip: 1.0
+  focal_gamma: 2.0
+  focal_alpha: 0.75
+  max_len: 336
