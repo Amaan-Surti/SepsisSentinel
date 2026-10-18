@@ -90,7 +90,6 @@ class TestClinicalScores:
     def test_sirs_score(self):
         """SIRS = 4 for Temp 39, HR 120, Resp 25, WBC 15."""
         cfg = load_config("configs/config.yaml")
-        n = 1
         data = {col: [np.nan] for col in MEASURED}
         data["Temp"] = [39.0]
         data["HR"] = [120.0]
@@ -118,7 +117,6 @@ class TestClinicalScores:
     def test_sofa_partial_score(self):
         """SOFA partial: Platelets 40→3, Bilirubin 1.5→1, Creatinine 1.0→0, MAP 60→1 → total 5."""
         cfg = load_config("configs/config.yaml")
-        n = 1
         data = {col: [np.nan] for col in MEASURED}
         data["Platelets"] = [40.0]
         data["Bilirubin_total"] = [1.5]
