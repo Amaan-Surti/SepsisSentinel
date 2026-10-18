@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 #  Helper: Expected-Calibration Error (ECE) with equal-width bins
 # ---------------------------------------------------------------------------
 
+
 def _ece(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10) -> float:
     """Expected Calibration Error with equal-width bins."""
     bin_edges = np.linspace(0.0, 1.0, n_bins + 1)
@@ -37,6 +38,7 @@ def _ece(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10) -> float:
 #  Helper: t_sepsis for a patient (first label=1 index + 6)
 # ---------------------------------------------------------------------------
 
+
 def _t_sepsis(labels: np.ndarray) -> float:
     """Return t_sepsis = first label=1 index + 6, or inf for non-septic."""
     if np.any(labels):
@@ -47,6 +49,7 @@ def _t_sepsis(labels: np.ndarray) -> float:
 # ---------------------------------------------------------------------------
 #  Helper: count alert events (rising edges)
 # ---------------------------------------------------------------------------
+
 
 def _count_alert_events(alerts: np.ndarray) -> int:
     """Count the number of alert events (rising edges + leading 1)."""
@@ -75,6 +78,7 @@ def _alert_event_starts(alerts: np.ndarray) -> List[int]:
 # ---------------------------------------------------------------------------
 #  Main evaluation function
 # ---------------------------------------------------------------------------
+
 
 def evaluate_predictions(
     df: pd.DataFrame,
@@ -163,7 +167,8 @@ def evaluate_predictions(
     patient_sensitivity = detected / len(septic_patients) if septic_patients else 0.0
     median_lead_time_h = float(np.median(lead_times)) if lead_times else float("nan")
 
-    # false_alerts_per_patient_day: alert events in non-septic patients / (non-septic patient-hours / 24)
+    # false_alerts_per_patient_day: alert events in non-septic patients /
+    # (non-septic patient-hours / 24)
     total_false_events = 0
     total_nonseptic_hours = 0
     for nsp in nonseptic_patients:
@@ -173,7 +178,8 @@ def evaluate_predictions(
         total_false_events / (total_nonseptic_hours / 24.0) if total_nonseptic_hours > 0 else 0.0
     )
 
-    # event_ppv: share of all alert events that start inside [t_sepsis-12, t_sepsis+3] of a septic patient
+    # event_ppv: share of all alert events starting inside
+    # [t_sepsis-12, t_sepsis+3] of a septic patient
     total_alert_events = 0
     true_alert_events = 0
     for sp in septic_patients:
@@ -189,7 +195,9 @@ def evaluate_predictions(
     event_ppv = true_alert_events / total_alert_events if total_alert_events > 0 else 0.0
 
     # alert_hour_rate: share of hours with alert = 1
-    alert_hour_rate = float(all_alerts_col.sum()) / len(all_alerts_col) if len(all_alerts_col) > 0 else 0.0
+    alert_hour_rate = (
+        float(all_alerts_col.sum()) / len(all_alerts_col) if len(all_alerts_col) > 0 else 0.0
+    )
 
     return {
         "utility_norm": utility_norm,
@@ -208,6 +216,7 @@ def evaluate_predictions(
 # ---------------------------------------------------------------------------
 #  Subgroup metrics
 # ---------------------------------------------------------------------------
+
 
 def subgroup_metrics(
     df: pd.DataFrame,

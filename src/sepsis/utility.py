@@ -96,20 +96,39 @@ def normalized_utility(
     for pid, labels in labels_by_patient.items():
         preds = preds_by_patient[pid]
         observed += compute_prediction_utility(
-            labels, preds, dt_early, dt_optimal, dt_late,
-            max_u_tp, min_u_fn, u_fp, u_tn,
+            labels,
+            preds,
+            dt_early,
+            dt_optimal,
+            dt_late,
+            max_u_tp,
+            min_u_fn,
+            u_fp,
+            u_tn,
         )
-        best_preds = _best_predictions_for_patient(
-            labels, dt_early, dt_optimal, dt_late
-        )
+        best_preds = _best_predictions_for_patient(labels, dt_early, dt_optimal, dt_late)
         best_total += compute_prediction_utility(
-            labels, best_preds, dt_early, dt_optimal, dt_late,
-            max_u_tp, min_u_fn, u_fp, u_tn,
+            labels,
+            best_preds,
+            dt_early,
+            dt_optimal,
+            dt_late,
+            max_u_tp,
+            min_u_fn,
+            u_fp,
+            u_tn,
         )
         zeros = np.zeros(len(labels), dtype=int)
         inaction += compute_prediction_utility(
-            labels, zeros, dt_early, dt_optimal, dt_late,
-            max_u_tp, min_u_fn, u_fp, u_tn,
+            labels,
+            zeros,
+            dt_early,
+            dt_optimal,
+            dt_late,
+            max_u_tp,
+            min_u_fn,
+            u_fp,
+            u_tn,
         )
 
     denom = best_total - inaction
@@ -148,10 +167,8 @@ def patient_utilities(
 def main() -> None:
     """CLI entrypoint for sepsis.utility."""
     parser = argparse.ArgumentParser(description="Utility scoring module")
-    parser.add_argument(
-        "--config", type=str, default="configs/config.yaml", help="Config path"
-    )
-    args = parser.parse_args()
+    parser.add_argument("--config", type=str, default="configs/config.yaml", help="Config path")
+    parser.parse_args()
     fmt = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     logging.basicConfig(level=logging.INFO, format=fmt)
     logger.info("Utility module loaded. Use from code: from sepsis.utility import ...")

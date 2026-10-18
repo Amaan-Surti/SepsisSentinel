@@ -1,10 +1,8 @@
 """Tests for sepsis.utility — hand-verified acceptance checks per PLAN.md §P2.T2."""
 
 import numpy as np
-import pytest
 
 from sepsis.utility import compute_prediction_utility, normalized_utility
-
 
 # Default config for utility
 CFG = {

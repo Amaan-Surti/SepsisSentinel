@@ -70,9 +70,7 @@ def create_splits(
     dev_only = lockbox_df[lockbox_df["split"] == "dev"].copy().reset_index(drop=True)
     dev_only["stratum"] = dev_only["hospital"] + "_" + dev_only["septic"].astype(str)
 
-    skf = StratifiedKFold(
-        n_splits=cfg["split"]["n_folds"], shuffle=True, random_state=SEED
-    )
+    skf = StratifiedKFold(n_splits=cfg["split"]["n_folds"], shuffle=True, random_state=SEED)
     dev_only["fold"] = -1
     for fold_idx, (_, val_idx) in enumerate(skf.split(dev_only, dev_only["stratum"])):
         dev_only.loc[dev_only.index[val_idx], "fold"] = fold_idx
@@ -83,15 +81,11 @@ def create_splits(
         mask = dev_only["hospital"] == hosp
         hosp_df = dev_only[mask].reset_index()
         skf_h = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
-        for fold_idx, (_, val_idx) in enumerate(
-            skf_h.split(hosp_df, hosp_df["septic"])
-        ):
+        for fold_idx, (_, val_idx) in enumerate(skf_h.split(hosp_df, hosp_df["septic"])):
             orig_indices = hosp_df.loc[val_idx, "index"].values
             dev_only.loc[orig_indices, "fold_within_hospital"] = fold_idx
 
-    folds_df = dev_only[
-        ["patient_id", "hospital", "septic", "fold", "fold_within_hospital"]
-    ]
+    folds_df = dev_only[["patient_id", "hospital", "septic", "fold", "fold_within_hospital"]]
     folds_df.to_csv(folds_path, index=False)
     logger.info("Folds saved to %s: %d dev patients in %d folds", folds_path, len(folds_df), 5)
 
@@ -108,9 +102,7 @@ def get_rows(df: pd.DataFrame, patient_ids: pd.Series | set | list) -> pd.DataFr
 def main() -> None:
     """CLI entrypoint for sepsis.splits."""
     parser = argparse.ArgumentParser(description="Create patient-level splits")
-    parser.add_argument(
-        "--config", type=str, default="configs/config.yaml", help="Config path"
-    )
+    parser.add_argument("--config", type=str, default="configs/config.yaml", help="Config path")
     args = parser.parse_args()
 
     fmt = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"

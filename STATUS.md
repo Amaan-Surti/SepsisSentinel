@@ -2,7 +2,7 @@
 Last updated: 2026-10-18 by Antigravity
 
 ## Current task
-Phase 2 — COMPLETED (Evaluation harness and baselines coded; B3 run after Phase 3 features)
+Phase 3 — COMPLETED (Features, baselines, tuned 5-fold CV, ablations, final dev model trained; ready for Phase 4)
 
 ## Task board
 | Task | Status | Notes |
@@ -19,13 +19,13 @@ Phase 2 — COMPLETED (Evaluation harness and baselines coded; B3 run after Phas
 | P2.T3 metrics | DONE | Full harness: utility, AUROC, AUPRC, Brier, ECE, sens, lead time, FP/day, PPV; 7 tests pass |
 | P2.T4 alerting | DONE | k-consecutive + sticky policy; grid search; causality test; 7 tests pass |
 | P2.T5 baselines (code) | DONE | B0–B3 coded; B1/B2/B3 run after P3.T2 features are built |
-| P3.T1 features | TODO | |
-| P3.T2 baselines (run) | TODO | |
-| P3.T3 LGBM default 5-fold | TODO | |
-| P3.T4 Optuna | TODO | |
-| P3.T5 LGBM tuned 5-fold | TODO | |
-| P3.T6 ablations | TODO | |
-| P3.T7 final dev model | TODO | |
+| P3.T1 features | DONE | 298 features vectorised, 1,552,210 rows; all 10 tests pass (causality verified on 20 patients) |
+| P3.T2 baselines (run) | DONE | B0: u=0.0000; B1: u=0.0519; B2: u=0.0153; B3 LogReg: AUROC=0.7431, u=0.2528 (thresh 0.72, k=1, s=6) |
+| P3.T3 LGBM default 5-fold | DONE | AUROC=0.8446, AUPRC=0.1221, utility=0.4183 (policy: thresh=0.10, k=1, s=0) |
+| P3.T4 Optuna | DONE | 40 trials completed over folds [0,1,2]; Best Trial 13 val AUPRC=0.1342 (vs 0.1264 default); params saved |
+| P3.T5 LGBM tuned 5-fold | DONE | AUROC=0.8447, AUPRC=0.1223, utility=0.4262 (policy: thresh=0.05, k=1, s=0, sens=86.10%) |
+| P3.T6 ablations | DONE | 4 ablations evaluated; no_missingness drops utility from 0.4262 to 0.4039 (table & figure saved) |
+| P3.T7 final dev model | DONE | Trained on all 1,241,132 dev rows with tuned params (303 rounds); models/final/ saved |
 | P4.T1–T4 cross-hospital | TODO | |
 | P5.T1 calibration | TODO | |
 | P5.T2 policy | TODO | |
@@ -44,9 +44,9 @@ Phase 2 — COMPLETED (Evaluation harness and baselines coded; B3 run after Phas
 - Patients / rows / septic / % positive rows: 40,336 / 1,552,210 / 2,932 (7.27%) / 1.80%
 - Lockbox split: 32,268 dev / 8,068 test (exact 80/20, stratified by hospital × septic)
 - Dev folds: 5 × ~6,454 patients each; septic rate per fold within ±0.5pp; hospital share within ±1pp
-- Dev OOF (default LGBM): AUROC / AUPRC / utility:
-- Dev OOF (tuned LGBM):
-- Policy: threshold / k / sticky:
+- Dev OOF (default LGBM): AUROC 0.8446 / AUPRC 0.1221 / utility 0.4183 (sens 83.55%, lead 24.0h, 0.44 FP/day)
+- Dev OOF (tuned LGBM): AUROC 0.8447 / AUPRC 0.1223 / utility 0.4262 (sens 86.10%, lead 24.0h, 0.48 FP/day)
+- Policy: threshold 0.05 / k 1 / sticky 0 (tuned model)
 - Cross-hospital A→B, B→A utility:
 - LOCKBOX TEST: utility [CI] / AUROC / AUPRC / sensitivity / lead time / false alerts per day:
 
@@ -64,12 +64,23 @@ Phase 2 — COMPLETED (Evaluation harness and baselines coded; B3 run after Phas
 - Generated `notebooks/01_eda.ipynb` calling `sepsis.eda` functions for reproducible interactive reporting.
 - Official utility scorer reproduced verbatim from PLAN.md reference implementation (no download needed).
 - B3 logistic regression coded but left to run in P3.T2 once feature matrix is available.
+- P3 feature engineering vectorized with zero data leakage (10 tests pass, causality verified on 20 patients).
+- Optuna tuned 40 trials yielding Trial 13 best params (AUPRC=0.1342 vs 0.1264 default); tuned 5-fold CV improved utility to 0.4262 and ECE from 0.0412 to 0.0182.
+- Ablations confirmed missingness signals contribute significant utility (+0.0223); final dev model trained for 303 rounds on all dev patients.
 
 ## Blockers / questions for the human
-- None. Phase 2 completed according to plan.
+- None. Phase 3 completed according to plan.
 
 ## Experiment log
 | Date | Run | Change | Key metric | Kept? |
 |---|---|---|---|---|
 | 2026-10-18 | P1.T4 | Adversarial validation (hospital A vs B) | AUROC = 1.0000 | Yes |
 | 2026-10-18 | P2 | Evaluation harness + baselines coded | 29 tests pass (splits/utility/metrics/alerting) | Yes |
+| 2026-10-18 | P3.T1 | Feature matrix extraction | 298 causal features on 1.55M rows | Yes |
+| 2026-10-18 | P3.T2 | Baselines evaluation (B0–B3) | B3 LogReg OOF AUROC=0.7431, utility=0.2528 | Yes |
+| 2026-10-18 | P3.T3 | LightGBM default 5-fold CV | OOF AUROC=0.8446, utility=0.4183 (s=0, k=1, th=0.10) | Yes |
+| 2026-10-18 | P3.T4 | Optuna tuning (40 trials) | Best Trial 13 val AUPRC=0.1342 (vs 0.1264 default) | Yes |
+| 2026-10-18 | P3.T5 | LightGBM tuned 5-fold CV | OOF AUROC=0.8447, utility=0.4262 (s=0, k=1, th=0.05) | Yes |
+| 2026-10-18 | P3.T6 | Feature-group ablations | no_missingness utility drops from 0.4262 to 0.4039 | Yes |
+| 2026-10-18 | P3.T7 | Final dev model training | 303 rounds on 1,241,132 dev rows, models/final/ saved | Yes |
+

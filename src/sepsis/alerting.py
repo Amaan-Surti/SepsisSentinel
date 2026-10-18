@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 
 from sepsis.config import load_config
-from sepsis.metrics import evaluate_predictions
 
 logger = logging.getLogger(__name__)
 
@@ -38,40 +37,47 @@ def apply_policy(
     Returns:
         np.ndarray of binary alerts aligned with df's index order.
     """
-    alerts = np.zeros(len(df), dtype=int)
+    df_sorted = df.sort_values(["patient_id", "hour"])
+    orig_idx = df_sorted.index
 
-    for pid, group in df.groupby("patient_id"):
-        group = group.sort_values("hour")
-        idx = group.index
-        probs = group[prob_col].values
+    pids = df_sorted["patient_id"].values
+    probs = df_sorted[prob_col].values
+    n = len(df_sorted)
 
-        # Step 1: raw threshold
-        raw = (probs >= threshold).astype(int)
+    if n == 0:
+        return np.zeros(0, dtype=int)
 
-        # Step 2: k-consecutive rule
-        k_pass = np.zeros(len(raw), dtype=int)
-        for t in range(len(raw)):
-            if t < k - 1:
-                # Not enough prior hours
-                if k == 1 and raw[t]:
-                    k_pass[t] = 1
-                continue
-            if np.all(raw[t - k + 1: t + 1]):
-                k_pass[t] = 1
+    change_mask = pids[:-1] != pids[1:]
+    boundaries = np.where(change_mask)[0] + 1
+    starts = np.r_[0, boundaries]
+    ends = np.r_[boundaries, n]
 
-        # Step 3: sticky
-        final = np.zeros(len(raw), dtype=int)
-        last_fire = -999
-        for t in range(len(raw)):
-            if k_pass[t]:
-                final[t] = 1
-                last_fire = t
-            elif t - last_fire <= sticky and last_fire >= 0:
-                final[t] = 1
+    raw = (probs >= threshold).astype(np.int8)
+    alerts = np.zeros(n, dtype=int)
 
-        alerts[idx] = final
+    for i in range(len(starts)):
+        s = starts[i]
+        e = ends[i]
+        p_raw = raw[s:e]
+        m = e - s
 
-    return alerts
+        consec = 0
+        sticky_rem = 0
+        for t in range(m):
+            if p_raw[t]:
+                consec += 1
+            else:
+                consec = 0
+
+            if consec >= k:
+                alerts[s + t] = 1
+                sticky_rem = sticky
+            elif sticky_rem > 0:
+                alerts[s + t] = 1
+                sticky_rem -= 1
+
+    result = pd.Series(alerts, index=orig_idx)
+    return result.loc[df.index].values
 
 
 def search_policy(
@@ -90,6 +96,8 @@ def search_policy(
         (best_params, grid_df) where best_params is dict with threshold, k, sticky
         and grid_df is the full grid results.
     """
+    from sepsis.utility import compute_prediction_utility
+
     if cfg is None:
         cfg = load_config()
 
@@ -103,41 +111,119 @@ def search_policy(
     thresholds = np.arange(thresh_start, thresh_stop + 1e-9, thresh_step)
     thresholds = np.round(thresholds, 4)
 
+    df_sorted = df.sort_values(["patient_id", "hour"]).reset_index(drop=True)
+    pids = df_sorted["patient_id"].values
+    probs = df_sorted[prob_col].values
+    labels = df_sorted["SepsisLabel"].values.astype(int)
+    n = len(df_sorted)
+
+    change_mask = pids[:-1] != pids[1:]
+    boundaries = np.where(change_mask)[0] + 1
+    starts = np.r_[0, boundaries]
+    ends = np.r_[boundaries, n]
+
+    # Pre-classify patients into septic and non-septic
+    dt_early = -12
+    dt_optimal = -6
+    dt_late = 3.0
+    septic_indices = []
+    septic_labels_list = []
+    non_septic_slice_masks = np.zeros(n, dtype=bool)
+
+    best_total = 0.0
+    inaction_total = 0.0
+
+    for i in range(len(starts)):
+        s = starts[i]
+        e = ends[i]
+        p_lbl = labels[s:e]
+        if np.any(p_lbl):
+            septic_indices.append(i)
+            septic_labels_list.append(p_lbl)
+            m = len(p_lbl)
+            t_sepsis = np.argmax(p_lbl) - dt_optimal
+            best_preds = np.zeros(m, dtype=int)
+            b_start = max(0, int(t_sepsis + dt_early))
+            b_stop = min(int(t_sepsis + dt_late + 1), m)
+            if b_start < b_stop:
+                best_preds[b_start:b_stop] = 1
+            best_total += compute_prediction_utility(p_lbl, best_preds)
+            inaction_total += compute_prediction_utility(p_lbl, np.zeros(m, dtype=int))
+        else:
+            non_septic_slice_masks[s:e] = True
+
+    denom = best_total - inaction_total
+
     records: List[Dict[str, Any]] = []
     best_utility = -np.inf
     best_params: Dict[str, Any] = {}
 
     total = len(thresholds) * len(k_values) * len(sticky_values)
-    logger.info("Searching %d policy configurations...", total)
+    logger.info("Searching %d policy configurations (fast vectorised search)...", total)
+
+    alerts_buf = np.zeros(n, dtype=np.int8)
 
     for k in k_values:
         for sticky in sticky_values:
             for thresh in thresholds:
-                alert_col = "__tmp_alert__"
-                df_tmp = df.copy()
-                df_tmp[alert_col] = apply_policy(df_tmp, prob_col, float(thresh), k, sticky)
+                raw = (probs >= thresh).astype(np.int8)
 
-                try:
-                    m = evaluate_predictions(df_tmp, prob_col, alert_col, cfg)
-                    u = m["utility_norm"]
-                except Exception:
-                    u = float("-inf")
+                # Compute alerts per patient
+                for i in range(len(starts)):
+                    s = starts[i]
+                    e = ends[i]
+                    p_raw = raw[s:e]
+                    m = e - s
+                    consec = 0
+                    sticky_rem = 0
+                    for t in range(m):
+                        if p_raw[t]:
+                            consec += 1
+                        else:
+                            consec = 0
+                        if consec >= k:
+                            alerts_buf[s + t] = 1
+                            sticky_rem = sticky
+                        elif sticky_rem > 0:
+                            alerts_buf[s + t] = 1
+                            sticky_rem -= 1
+                        else:
+                            alerts_buf[s + t] = 0
 
-                records.append({
-                    "threshold": float(thresh),
-                    "k": k,
-                    "sticky": sticky,
-                    "utility_norm": u,
-                })
+                # Non-septic utility: -0.05 per alert hour
+                non_septic_u = -0.05 * float(np.sum(alerts_buf[non_septic_slice_masks]))
+
+                # Septic utility
+                septic_u = 0.0
+                for idx_in_septic, pt_idx in enumerate(septic_indices):
+                    s = starts[pt_idx]
+                    e = ends[pt_idx]
+                    p_alerts = alerts_buf[s:e]
+                    p_lbl = septic_labels_list[idx_in_septic]
+                    septic_u += compute_prediction_utility(p_lbl, p_alerts)
+
+                obs_total = non_septic_u + septic_u
+                u = (obs_total - inaction_total) / denom if denom != 0 else 0.0
+
+                records.append(
+                    {
+                        "threshold": float(thresh),
+                        "k": k,
+                        "sticky": sticky,
+                        "utility_norm": float(u),
+                    }
+                )
 
                 # Ties → choose the higher threshold
-                if u > best_utility or (u == best_utility and float(thresh) > best_params.get("threshold", 0)):
+                if u > best_utility or (
+                    u == best_utility and float(thresh) > best_params.get("threshold", 0)
+                ):
                     best_utility = u
                     best_params = {
                         "threshold": float(thresh),
                         "k": k,
                         "sticky": sticky,
-                        "utility_norm": u,
+                        "utility_norm": float(u),
                     }
 
     grid_df = pd.DataFrame(records)

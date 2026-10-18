@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 #  B0: Never alert
 # ---------------------------------------------------------------------------
 
+
 def b0_never_alert(df: pd.DataFrame, cfg: Optional[Dict[str, Any]] = None) -> Dict[str, float]:
     """B0: All-zero predictions. Utility should be exactly 0.0."""
     if cfg is None:
@@ -44,6 +45,7 @@ def b0_never_alert(df: pd.DataFrame, cfg: Optional[Dict[str, Any]] = None) -> Di
 # ---------------------------------------------------------------------------
 #  B1: SIRS rule
 # ---------------------------------------------------------------------------
+
 
 def b1_sirs_rule(df: pd.DataFrame, cfg: Optional[Dict[str, Any]] = None) -> Dict[str, float]:
     """B1: Alert when score__sirs >= 2."""
@@ -59,6 +61,7 @@ def b1_sirs_rule(df: pd.DataFrame, cfg: Optional[Dict[str, Any]] = None) -> Dict
 #  B2: Partial-qSOFA rule
 # ---------------------------------------------------------------------------
 
+
 def b2_qsofa_rule(df: pd.DataFrame, cfg: Optional[Dict[str, Any]] = None) -> Dict[str, float]:
     """B2: Alert when score__qsofa_partial >= 2."""
     if cfg is None:
@@ -73,16 +76,45 @@ def b2_qsofa_rule(df: pd.DataFrame, cfg: Optional[Dict[str, Any]] = None) -> Dic
 #  B3: Logistic regression (5-fold OOF)
 # ---------------------------------------------------------------------------
 
+
 def _get_b3_features(cfg: Optional[Dict[str, Any]] = None):
     """Return the list of feature columns for B3."""
     # 34 LOCF current values (original raw columns, LOCF-filled)
     raw_cols = [
-        "HR", "O2Sat", "Temp", "SBP", "MAP", "DBP", "Resp", "EtCO2",
-        "BaseExcess", "HCO3", "FiO2", "pH", "PaCO2", "SaO2", "AST",
-        "BUN", "Alkalinephos", "Calcium", "Chloride", "Creatinine",
-        "Bilirubin_direct", "Glucose", "Lactate", "Magnesium", "Phosphate",
-        "Potassium", "Bilirubin_total", "TroponinI", "Hct", "Hgb",
-        "PTT", "WBC", "Fibrinogen", "Platelets",
+        "HR",
+        "O2Sat",
+        "Temp",
+        "SBP",
+        "MAP",
+        "DBP",
+        "Resp",
+        "EtCO2",
+        "BaseExcess",
+        "HCO3",
+        "FiO2",
+        "pH",
+        "PaCO2",
+        "SaO2",
+        "AST",
+        "BUN",
+        "Alkalinephos",
+        "Calcium",
+        "Chloride",
+        "Creatinine",
+        "Bilirubin_direct",
+        "Glucose",
+        "Lactate",
+        "Magnesium",
+        "Phosphate",
+        "Potassium",
+        "Bilirubin_total",
+        "TroponinI",
+        "Hct",
+        "Hgb",
+        "PTT",
+        "WBC",
+        "Fibrinogen",
+        "Platelets",
     ]
     # 34 measurement flags
     meas_cols = [f"{c}__meas" for c in raw_cols]
@@ -145,17 +177,22 @@ def b3_logistic_regression(
         y_train = features_df.loc[train_mask, "SepsisLabel"].values.astype(int)
         X_val = features_df.loc[val_mask, feat_cols].values
 
-        pipe = Pipeline([
-            ("imputer", SimpleImputer(strategy="median")),
-            ("scaler", StandardScaler()),
-            ("clf", LogisticRegression(
-                C=0.1,
-                class_weight="balanced",
-                max_iter=2000,
-                solver="lbfgs",
-                random_state=SEED,
-            )),
-        ])
+        pipe = Pipeline(
+            [
+                ("imputer", SimpleImputer(strategy="median")),
+                ("scaler", StandardScaler()),
+                (
+                    "clf",
+                    LogisticRegression(
+                        C=0.1,
+                        class_weight="balanced",
+                        max_iter=2000,
+                        solver="lbfgs",
+                        random_state=SEED,
+                    ),
+                ),
+            ]
+        )
         pipe.fit(X_train, y_train)
         oof_probs[val_mask.values] = pipe.predict_proba(X_val)[:, 1]
 
@@ -167,8 +204,11 @@ def b3_logistic_regression(
     logger.info("Searching alert policy for B3...")
     best_params, grid_df = search_policy(features_df, "prob_b3", cfg)
     features_df["alert_b3"] = apply_policy(
-        features_df, "prob_b3",
-        best_params["threshold"], best_params["k"], best_params["sticky"],
+        features_df,
+        "prob_b3",
+        best_params["threshold"],
+        best_params["k"],
+        best_params["sticky"],
     )
 
     metrics = evaluate_predictions(features_df, "prob_b3", "alert_b3", cfg)
@@ -184,6 +224,7 @@ def b3_logistic_regression(
 # ---------------------------------------------------------------------------
 #  Run all baselines
 # ---------------------------------------------------------------------------
+
 
 def run_all_baselines(
     features_df: pd.DataFrame,
@@ -205,6 +246,13 @@ def run_all_baselines(
 
     tables_dir = Path(cfg["paths"]["tables"])
     tables_dir.mkdir(parents=True, exist_ok=True)
+
+    # Filter features to dev patients
+    dev_pids = set(folds_df["patient_id"])
+    features_df = features_df[features_df["patient_id"].isin(dev_pids)].copy()
+    logger.info(
+        "Evaluating baselines on dev cohort: %d patients, %d rows", len(dev_pids), len(features_df)
+    )
 
     results = []
 
@@ -255,9 +303,7 @@ def main() -> None:
     import argparse
 
     parser = argparse.ArgumentParser(description="Run baseline models")
-    parser.add_argument(
-        "--config", type=str, default="configs/config.yaml", help="Config path"
-    )
+    parser.add_argument("--config", type=str, default="configs/config.yaml", help="Config path")
     args = parser.parse_args()
 
     fmt = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"

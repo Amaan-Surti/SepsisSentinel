@@ -3,7 +3,6 @@
 import hashlib
 from pathlib import Path
 
-import pandas as pd
 import pytest
 
 from sepsis.config import load_config

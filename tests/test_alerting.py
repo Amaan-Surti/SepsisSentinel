@@ -2,18 +2,19 @@
 
 import numpy as np
 import pandas as pd
-import pytest
 
 from sepsis.alerting import apply_policy
 
 
 def _make_df(probs: list, patient_id: str = "P1") -> pd.DataFrame:
     """Helper: make a single-patient df from a list of probabilities."""
-    return pd.DataFrame({
-        "patient_id": [patient_id] * len(probs),
-        "hour": list(range(len(probs))),
-        "prob": probs,
-    })
+    return pd.DataFrame(
+        {
+            "patient_id": [patient_id] * len(probs),
+            "hour": list(range(len(probs))),
+            "prob": probs,
+        }
+    )
 
 
 class TestKConsecutive:
