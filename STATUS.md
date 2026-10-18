@@ -2,7 +2,7 @@
 Last updated: 2026-10-18 by Antigravity
 
 ## Current task
-P1.T1 — Download — IN PROGRESS
+P1.T2 — io.py — IN PROGRESS
 
 ## Task board
 | Task | Status | Notes |
@@ -10,7 +10,7 @@ P1.T1 — Download — IN PROGRESS
 | P0.T1 Repo skeleton | DONE | Skeleton created, pinned deps installed, ruff/pytest passing |
 | P0.T2 STATUS.md | DONE | Initialized from §12 template |
 | P0.T3 Git | DONE | Initialized git repository and initial commit |
-| P1.T1 Download | TODO | |
+| P1.T1 Download | DONE | 20,336 Set A and 20,000 Set B files synced and verified |
 | P1.T2 io.py | TODO | |
 | P1.T3 cleaning.py | TODO | |
 | P1.T4 EDA | TODO | |
