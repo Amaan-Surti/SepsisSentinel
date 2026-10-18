@@ -2,7 +2,7 @@
 Last updated: 2026-10-18 by Antigravity
 
 ## Current task
-Phase 0 & Phase 1 — COMPLETED (Awaiting kickoff for Phase 2)
+Phase 2 — COMPLETED (Evaluation harness and baselines coded; B3 run after Phase 3 features)
 
 ## Task board
 | Task | Status | Notes |
@@ -14,11 +14,11 @@ Phase 0 & Phase 1 — COMPLETED (Awaiting kickoff for Phase 2)
 | P1.T2 io.py | DONE | 40,336 patients, 1,552,210 rows, 2,932 septic (7.27%), 1.80% pos rows |
 | P1.T3 cleaning.py | DONE | Cleaned ranges, unit encoded; max loss 0.305% (FiO2) < 1.0% |
 | P1.T4 EDA | DONE | All 10 tables and figures generated, adversarial validation AUROC = 1.0000 |
-| P2.T1 splits | TODO | |
-| P2.T2 utility | TODO | |
-| P2.T3 metrics | TODO | |
-| P2.T4 alerting | TODO | |
-| P2.T5 baselines (code) | TODO | |
+| P2.T1 splits | DONE | 32,268 dev / 8,068 test; 5 strat. folds; cross-hospital folds; all 7 tests pass |
+| P2.T2 utility | DONE | Official Challenge scorer reproduced; all 8 hand-verified tests pass |
+| P2.T3 metrics | DONE | Full harness: utility, AUROC, AUPRC, Brier, ECE, sens, lead time, FP/day, PPV; 7 tests pass |
+| P2.T4 alerting | DONE | k-consecutive + sticky policy; grid search; causality test; 7 tests pass |
+| P2.T5 baselines (code) | DONE | B0–B3 coded; B1/B2/B3 run after P3.T2 features are built |
 | P3.T1 features | TODO | |
 | P3.T2 baselines (run) | TODO | |
 | P3.T3 LGBM default 5-fold | TODO | |
@@ -42,6 +42,8 @@ Phase 0 & Phase 1 — COMPLETED (Awaiting kickoff for Phase 2)
 
 ## Key numbers (fill as they appear)
 - Patients / rows / septic / % positive rows: 40,336 / 1,552,210 / 2,932 (7.27%) / 1.80%
+- Lockbox split: 32,268 dev / 8,068 test (exact 80/20, stratified by hospital × septic)
+- Dev folds: 5 × ~6,454 patients each; septic rate per fold within ±0.5pp; hospital share within ±1pp
 - Dev OOF (default LGBM): AUROC / AUPRC / utility:
 - Dev OOF (tuned LGBM):
 - Policy: threshold / k / sticky:
@@ -60,11 +62,14 @@ Phase 0 & Phase 1 — COMPLETED (Awaiting kickoff for Phase 2)
 - Used multi-process batching in `sepsis.io` to load 40,336 PSV files in ~17 seconds.
 - Physiological sanity ranges applied with NaN replacement and FiO2 percentage scaling.
 - Generated `notebooks/01_eda.ipynb` calling `sepsis.eda` functions for reproducible interactive reporting.
+- Official utility scorer reproduced verbatim from PLAN.md reference implementation (no download needed).
+- B3 logistic regression coded but left to run in P3.T2 once feature matrix is available.
 
 ## Blockers / questions for the human
-- None. Phase 0 and Phase 1 completed according to plan.
+- None. Phase 2 completed according to plan.
 
 ## Experiment log
 | Date | Run | Change | Key metric | Kept? |
 |---|---|---|---|---|
 | 2026-10-18 | P1.T4 | Adversarial validation (hospital A vs B) | AUROC = 1.0000 | Yes |
+| 2026-10-18 | P2 | Evaluation harness + baselines coded | 29 tests pass (splits/utility/metrics/alerting) | Yes |
