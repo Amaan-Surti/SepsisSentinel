@@ -75,7 +75,7 @@ def feature_text(name: str, value: float) -> str:
         return "Male" if int(round(value)) == 1 else "Female"
     if name == "static__unit":
         u = int(round(value))
-        return "Unit: " + ("MICU" if u == 0 else "SICU" if u == 1 else "Other ICU")
+        return "Unit: " + ("MICU" if u == 1 else "SICU" if u == 2 else "unknown ICU")
     if name == "static__hosp_adm_time":
         if value <= 0:
             return f"Hospital stay {abs(value):.1f}h prior to ICU"
@@ -167,7 +167,7 @@ def explain_rows(
     # For binary classification, shap_values can be a list [class0, class1] or ndarray
     if isinstance(shap_values, list):
         shap_matrix = shap_values[1]
-    elif shap_matrix.ndim == 3:  # (N, features, classes)
+    elif shap_values.ndim == 3:  # (N, features, classes)
         shap_matrix = shap_values[:, :, 1]
     else:
         shap_matrix = shap_values

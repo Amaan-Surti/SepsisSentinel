@@ -1,0 +1,639 @@
+[
+  {
+    "threshold": 0.05,
+    "utility_norm": 0.3797903347122988,
+    "patient_sensitivity": 0.7003410059676044,
+    "false_alerts_per_patient_day": 0.22197041952322336,
+    "median_lead_time_h": 22.0
+  },
+  {
+    "threshold": 0.06,
+    "utility_norm": 0.33236223086686745,
+    "patient_sensitivity": 0.5942028985507246,
+    "false_alerts_per_patient_day": 0.132125767296264,
+    "median_lead_time_h": 20.0
+  },
+  {
+    "threshold": 0.07,
+    "utility_norm": 0.3169766888397893,
+    "patient_sensitivity": 0.566069906223359,
+    "false_alerts_per_patient_day": 0.1113438927429194,
+    "median_lead_time_h": 20.0
+  },
+  {
+    "threshold": 0.08,
+    "utility_norm": 0.30645140912937224,
+    "patient_sensitivity": 0.5434782608695652,
+    "false_alerts_per_patient_day": 0.10006168260360368,
+    "median_lead_time_h": 20.0
+  },
+  {
+    "threshold": 0.09,
+    "utility_norm": 0.2731153335370439,
+    "patient_sensitivity": 0.48721227621483376,
+    "false_alerts_per_patient_day": 0.07160616608652412,
+    "median_lead_time_h": 19.0
+  },
+  {
+    "threshold": 0.1,
+    "utility_norm": 0.2318778793719446,
+    "patient_sensitivity": 0.41901108269394716,
+    "false_alerts_per_patient_day": 0.046237497044941345,
+    "median_lead_time_h": 19.0
+  },
+  {
+    "threshold": 0.11,
+    "utility_norm": 0.21875499482888303,
+    "patient_sensitivity": 0.40068201193520886,
+    "false_alerts_per_patient_day": 0.03934643613133232,
+    "median_lead_time_h": 18.0
+  },
+  {
+    "threshold": 0.12,
+    "utility_norm": 0.19248381087814914,
+    "patient_sensitivity": 0.3640238704177323,
+    "false_alerts_per_patient_day": 0.029716341542282473,
+    "median_lead_time_h": 18.0
+  },
+  {
+    "threshold": 0.13,
+    "utility_norm": 0.19248381087814914,
+    "patient_sensitivity": 0.3640238704177323,
+    "false_alerts_per_patient_day": 0.029716341542282473,
+    "median_lead_time_h": 18.0
+  },
+  {
+    "threshold": 0.14,
+    "utility_norm": 0.1368841669800676,
+    "patient_sensitivity": 0.2728047740835465,
+    "false_alerts_per_patient_day": 0.015608144277511936,
+    "median_lead_time_h": 17.0
+  },
+  {
+    "threshold": 0.15,
+    "utility_norm": 0.12343323970477532,
+    "patient_sensitivity": 0.25234441602728047,
+    "false_alerts_per_patient_day": 0.012999540777092113,
+    "median_lead_time_h": 17.0
+  },
+  {
+    "threshold": 0.16,
+    "utility_norm": 0.12343323970477532,
+    "patient_sensitivity": 0.25234441602728047,
+    "false_alerts_per_patient_day": 0.012999540777092113,
+    "median_lead_time_h": 17.0
+  },
+  {
+    "threshold": 0.17,
+    "utility_norm": 0.10206594937006433,
+    "patient_sensitivity": 0.22122762148337596,
+    "false_alerts_per_patient_day": 0.008564914826378415,
+    "median_lead_time_h": 15.0
+  },
+  {
+    "threshold": 0.18,
+    "utility_norm": 0.07262598721323824,
+    "patient_sensitivity": 0.16837169650468883,
+    "false_alerts_per_patient_day": 0.00454331776323119,
+    "median_lead_time_h": 13.0
+  },
+  {
+    "threshold": 0.19,
+    "utility_norm": 0.06561545106242962,
+    "patient_sensitivity": 0.1577152600170503,
+    "false_alerts_per_patient_day": 0.0038911668881262346,
+    "median_lead_time_h": 13.0
+  },
+  {
+    "threshold": 0.2,
+    "utility_norm": 0.051962233217375045,
+    "patient_sensitivity": 0.13384484228473997,
+    "false_alerts_per_patient_day": 0.002804248762951309,
+    "median_lead_time_h": 12.0
+  },
+  {
+    "threshold": 0.21,
+    "utility_norm": 0.03349164982136173,
+    "patient_sensitivity": 0.09292412617220801,
+    "false_alerts_per_patient_day": 0.0016303771877623889,
+    "median_lead_time_h": 8.0
+  },
+  {
+    "threshold": 0.22,
+    "utility_norm": 0.03252294683151607,
+    "patient_sensitivity": 0.08951406649616368,
+    "false_alerts_per_patient_day": 0.0015434237377483949,
+    "median_lead_time_h": 8.0
+  },
+  {
+    "threshold": 0.23,
+    "utility_norm": 0.026075504183904127,
+    "patient_sensitivity": 0.07033248081841433,
+    "false_alerts_per_patient_day": 0.0010217030376644303,
+    "median_lead_time_h": 8.0
+  },
+  {
+    "threshold": 0.24,
+    "utility_norm": 0.024812693916886456,
+    "patient_sensitivity": 0.06734867860187553,
+    "false_alerts_per_patient_day": 0.0008912728626434392,
+    "median_lead_time_h": 7.0
+  },
+  {
+    "threshold": 0.25,
+    "utility_norm": 0.024812693916886456,
+    "patient_sensitivity": 0.06734867860187553,
+    "false_alerts_per_patient_day": 0.0008912728626434392,
+    "median_lead_time_h": 7.0
+  },
+  {
+    "threshold": 0.26,
+    "utility_norm": 0.023259449040993356,
+    "patient_sensitivity": 0.06351236146632566,
+    "false_alerts_per_patient_day": 0.0007391043251189496,
+    "median_lead_time_h": 6.0
+  },
+  {
+    "threshold": 0.27,
+    "utility_norm": 0.02008817342045949,
+    "patient_sensitivity": 0.057971014492753624,
+    "false_alerts_per_patient_day": 0.0006086741500979585,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.28,
+    "utility_norm": 0.02008817342045949,
+    "patient_sensitivity": 0.057971014492753624,
+    "false_alerts_per_patient_day": 0.0006086741500979585,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.29,
+    "utility_norm": 0.02008817342045949,
+    "patient_sensitivity": 0.057971014492753624,
+    "false_alerts_per_patient_day": 0.0006086741500979585,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.3,
+    "utility_norm": 0.017554473016171905,
+    "patient_sensitivity": 0.051577152600170505,
+    "false_alerts_per_patient_day": 0.00043476725006997034,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.31,
+    "utility_norm": 0.017554473016171905,
+    "patient_sensitivity": 0.051577152600170505,
+    "false_alerts_per_patient_day": 0.00043476725006997034,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.32,
+    "utility_norm": 0.014593127115457256,
+    "patient_sensitivity": 0.04475703324808184,
+    "false_alerts_per_patient_day": 0.00034781380005597626,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.33,
+    "utility_norm": 0.014593127115457256,
+    "patient_sensitivity": 0.04475703324808184,
+    "false_alerts_per_patient_day": 0.00034781380005597626,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.34,
+    "utility_norm": 0.014554637551711469,
+    "patient_sensitivity": 0.04475703324808184,
+    "false_alerts_per_patient_day": 0.00034781380005597626,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.35,
+    "utility_norm": 0.014554637551711469,
+    "patient_sensitivity": 0.04475703324808184,
+    "false_alerts_per_patient_day": 0.00034781380005597626,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.36,
+    "utility_norm": 0.014554637551711469,
+    "patient_sensitivity": 0.04475703324808184,
+    "false_alerts_per_patient_day": 0.00034781380005597626,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.37,
+    "utility_norm": 0.013754436583302299,
+    "patient_sensitivity": 0.042625745950554135,
+    "false_alerts_per_patient_day": 0.00030433707504897925,
+    "median_lead_time_h": 3.5
+  },
+  {
+    "threshold": 0.38,
+    "utility_norm": 0.013754436583302299,
+    "patient_sensitivity": 0.042625745950554135,
+    "false_alerts_per_patient_day": 0.00030433707504897925,
+    "median_lead_time_h": 3.5
+  },
+  {
+    "threshold": 0.39,
+    "utility_norm": 0.013754436583302299,
+    "patient_sensitivity": 0.042625745950554135,
+    "false_alerts_per_patient_day": 0.00030433707504897925,
+    "median_lead_time_h": 3.5
+  },
+  {
+    "threshold": 0.4,
+    "utility_norm": 0.013754436583302299,
+    "patient_sensitivity": 0.042625745950554135,
+    "false_alerts_per_patient_day": 0.00030433707504897925,
+    "median_lead_time_h": 3.5
+  },
+  {
+    "threshold": 0.41,
+    "utility_norm": 0.013364839930425271,
+    "patient_sensitivity": 0.041773231031543054,
+    "false_alerts_per_patient_day": 0.00030433707504897925,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.42,
+    "utility_norm": 0.013364839930425271,
+    "patient_sensitivity": 0.041773231031543054,
+    "false_alerts_per_patient_day": 0.00030433707504897925,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.43,
+    "utility_norm": 0.01098480396765732,
+    "patient_sensitivity": 0.036231884057971016,
+    "false_alerts_per_patient_day": 0.00017390690002798813,
+    "median_lead_time_h": 3.5
+  },
+  {
+    "threshold": 0.44,
+    "utility_norm": 0.00852558527641992,
+    "patient_sensitivity": 0.029838022165387893,
+    "false_alerts_per_patient_day": 0.00013043017502099112,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.45,
+    "utility_norm": 0.00852558527641992,
+    "patient_sensitivity": 0.029838022165387893,
+    "false_alerts_per_patient_day": 0.00013043017502099112,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.46,
+    "utility_norm": 0.00852558527641992,
+    "patient_sensitivity": 0.029838022165387893,
+    "false_alerts_per_patient_day": 0.00013043017502099112,
+    "median_lead_time_h": 4.0
+  },
+  {
+    "threshold": 0.47,
+    "utility_norm": 0.006054026419706765,
+    "patient_sensitivity": 0.023444160272804774,
+    "false_alerts_per_patient_day": 6.521508751049556e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.48,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.49,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.5,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.51,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.52,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.53,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.54,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.55,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.56,
+    "utility_norm": 0.005712027547950344,
+    "patient_sensitivity": 0.022591645353793693,
+    "false_alerts_per_patient_day": 4.347672500699703e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.57,
+    "utility_norm": 0.0023769509213990613,
+    "patient_sensitivity": 0.00980392156862745,
+    "false_alerts_per_patient_day": 2.1738362503498516e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.58,
+    "utility_norm": 0.0023769509213990613,
+    "patient_sensitivity": 0.00980392156862745,
+    "false_alerts_per_patient_day": 2.1738362503498516e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.59,
+    "utility_norm": 0.0023769509213990613,
+    "patient_sensitivity": 0.00980392156862745,
+    "false_alerts_per_patient_day": 2.1738362503498516e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.6,
+    "utility_norm": 0.0023769509213990613,
+    "patient_sensitivity": 0.00980392156862745,
+    "false_alerts_per_patient_day": 2.1738362503498516e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.61,
+    "utility_norm": 0.0023769509213990613,
+    "patient_sensitivity": 0.00980392156862745,
+    "false_alerts_per_patient_day": 2.1738362503498516e-05,
+    "median_lead_time_h": 2.0
+  },
+  {
+    "threshold": 0.62,
+    "utility_norm": 0.0004364599003385665,
+    "patient_sensitivity": 0.0012787723785166241,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": 0.0
+  },
+  {
+    "threshold": 0.63,
+    "utility_norm": 0.0004364599003385665,
+    "patient_sensitivity": 0.0012787723785166241,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": 0.0
+  },
+  {
+    "threshold": 0.64,
+    "utility_norm": 0.0004364599003385665,
+    "patient_sensitivity": 0.0012787723785166241,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": 0.0
+  },
+  {
+    "threshold": 0.65,
+    "utility_norm": 0.0004364599003385665,
+    "patient_sensitivity": 0.0012787723785166241,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": 0.0
+  },
+  {
+    "threshold": 0.66,
+    "utility_norm": 0.0004364599003385665,
+    "patient_sensitivity": 0.0012787723785166241,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": 0.0
+  },
+  {
+    "threshold": 0.67,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.68,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.69,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.7,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.71,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.72,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.73,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.74,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.75,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.76,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.77,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.78,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.79,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.8,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.81,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.82,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.83,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.84,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.85,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.86,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.87,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.88,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.89,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.9,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.91,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.92,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.93,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.94,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  },
+  {
+    "threshold": 0.95,
+    "utility_norm": 0.00033788548326447006,
+    "patient_sensitivity": 0.0008525149190110827,
+    "false_alerts_per_patient_day": 0.0,
+    "median_lead_time_h": -0.5
+  }
+]

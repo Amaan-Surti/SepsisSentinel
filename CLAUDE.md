@@ -9,7 +9,7 @@
   ```
   Or activate the virtualenv before executing commands.
 - **Dependencies:** All pinned dependencies (lightgbm 4.5.0, scikit-learn 1.5.1, shap 0.46.0, fastapi 0.115.0, uvicorn, pydantic 2.9.2, pytest, ruff) are installed inside `.venv`.
-- **Testing:** `51/51` tests currently pass:
+- **Testing:** `67/67` tests currently pass (53 in `tests/`, 14 in `backend/tests/`):
   ```powershell
   .venv\Scripts\python.exe -m pytest
   ```
@@ -119,7 +119,7 @@ Read [`SepsisSentinel_Build_Plan.md`](file:///d:/NUV%20SEM%207/DATA%20SCIENCE%20
 ## 5. Startup Validation Checklist for Claude
 When starting your session, run:
 1. `git status` (confirm working tree is clean)
-2. `.venv\Scripts\python.exe -m pytest` (confirm 51/51 tests pass)
+2. `.venv\Scripts\python.exe -m pytest` (confirm 67/67 tests pass)
 3. `.venv\Scripts\python.exe -m ruff check src tests` (confirm 0 errors)
 4. View `STATUS.md` for current progress and key numbers.
-5. Begin directly with Phase 7.1 (`demo_cohort.py`).
+5. Phases 7 and 8 are complete (2026-10-19); see STATUS.md for remaining human steps.

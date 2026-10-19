@@ -7,10 +7,15 @@ ENV/
 data/**/*
 !data/**/
 !data/**/.gitkeep
+# Small demo cohort is tracked so the dashboard/Docker work from a clean clone
+!data/demo/*
 
 # Models and MLflow
 models/*
 !models/.gitkeep
+# Frozen final model (4 MB) is tracked for the API/Docker
+!models/final/
+!models/final/**
 mlruns/
 
 # Python cache and checkpoints

@@ -1,8 +1,8 @@
 # STATUS — SepsisSentinel
-Last updated: 2026-10-18 by Antigravity
+Last updated: 2026-10-19 by Claude Opus 5.5
 
 ## Current task
-Phase 5 complete — Calibration, alerting policy, SHAP explainability, subgroups, and single lockbox test evaluation verified. Ready for Phase 7 (Product: FastAPI backend, Vite React dashboard, Docker).
+Phases 7 and 8 complete. Docker stack built and verified (both containers healthy); QA checklist 10/10 passed on the Docker deployment; slides exported to PPTX/PDF. Human to-do: record the 60-s fallback demo video.
 
 ## Task board
 | Task | Status | Notes |
@@ -34,11 +34,17 @@ Phase 5 complete — Calibration, alerting policy, SHAP explainability, subgroup
 | P5.T5 MLflow | DONE | Final model artifacts, policy, parameters logged to MLflow experiment 'sepsis' |
 | P5.T6 LOCKBOX TEST (once) | DONE | 8,068 test patients evaluated once with 1,000 bootstrap resamples; utility=0.4270 [0.3929, 0.4604], AUROC=0.8475 [0.7965, 0.8990], sens=87.54%, lead=29.0h |
 | P6.T1–T3 GRU + ensemble (optional) | SKIPPED/OPTIONAL | Local LightGBM achieves superior calibrated utility; ready for Phase 7 product serving |
-| P7.T1 demo cohort | TODO | |
-| P7.T2 backend | TODO | |
-| P7.T3 frontend | TODO | |
-| P7.T4 docker | TODO | |
-| P8.T1–T5 report, slides, demo, viva | TODO | |
+| P7.T1 demo cohort | DONE | 24 lockbox-test beds (stay 24–96h, seed 42): 8 early (lead 4–12h), 2 missed/late, 10 quiet, 4 false-alert; 1,022 rows; online path == batch features (max diff 0.0) |
+| P7.T2 backend | DONE | FastAPI `backend/app/` (7 endpoints); 14 API tests pass incl. predict-consistency (<1e-6); predict 70-h stay ≈315 ms, ward ≈14 ms |
+| P7.T3 frontend | DONE | Vite 5.4.8 + React 18 + TS + Recharts; Ward / Patient / Model pages, replay clock, threshold slider, show-truth; `npm run build` clean; checked in Chrome at 1280×720 |
+| P7.T4 docker | DONE | `docker compose up --build` OK; backend + frontend healthy; ward at :8080, replay end to end; frontend healthcheck fixed (127.0.0.1, nginx IPv4-only) |
+| P7.T5 model card + QA | DONE | `reports/model_card.md` (served at /api/model-card); `reports/qa_checklist.md` 10/10 passed on Docker deployment |
+| P8.T1 results assembler | DONE | `python -m sepsis.report` → `reports/results.md` (23 tables, 17 figures); 2 tests |
+| P8.T2 report | DONE | `reports/report.md` (~7,200 words, dashboard screenshots in `reports/screenshots/`) |
+| P8.T3 slides | DONE | `reports/slides/slides.md` (14-slide Marp deck, speaker notes) exported to `slides.pptx` and `slides.pdf` (marp-cli 3.4.0); rendering checked visually |
+| P8.T4 demo script | DONE | `reports/demo_script.md` (3½ min; Bed 03 alerts h16, onset h22; Bed 07 miss) |
+| P8.T5 viva guide | DONE | `reports/viva_qa.md` (27 Q&A) |
+| P8.T6 README | DONE | GitHub-ready README with results, architecture, Docker and reproduction |
 
 ## Key numbers (fill as they appear)
 - Patients / rows / septic / % positive rows: 40,336 / 1,552,210 / 2,932 (7.27%) / 1.80%
@@ -95,8 +101,19 @@ Phase 5 complete — Calibration, alerting policy, SHAP explainability, subgroup
   5. *Clinical Baselines Dominance:* SepsisSentinel beats B0 (u=0.0000), B1 SIRS (u=0.0507, 1.53 FP/day), B2 qSOFA (u=0.0122, 25.94% sens), and B3 Logistic Regression (u=0.2438, AUROC 0.7367) by a wide margin (+75% relative gain over B3).
   6. *Explainability:* SHAP analysis confirmed stay progression (`static__iculos`, `static__hosp_adm_time`), clinical ordering patterns (`FiO2__tsl`, `Lactate__tsl`), and vital sign dynamics (`Temp`, `BUN`, `WBC`, `idx__shock_index`) as the primary drivers of sepsis predictions, with high stability across folds (mean pairwise Jaccard 0.5939).
 
+- **Phase 7 (2026-10-19, Claude):**
+  - Added `src/sepsis/inference.py` (shared online path: clean → features → LightGBM → isotonic → policy) used by both `demo_cohort.py` and the API so stored demo risks and `POST /api/predict` agree exactly.
+  - Bug fixes in `explain.py` (no effect on any model or metric): `explain_rows` referenced `shap_matrix` before assignment (crashed on ndarray SHAP output); `feature_text` mapped `static__unit` 0→MICU/1→SICU, but cleaning encodes Unit1 (MICU)=1, Unit2 (SICU)=2, 0=unknown — corrected.
+  - Demo "early" = first alert 4–12h before t_sepsis (only 11 of 259 eligible septic test patients qualify because the τ=0.03 policy usually fires >12h early — consistent with the 29h median lead). "Missed or late" = no alert, or first alert at/after onset.
+  - Scoring the lockbox patients for the demo is a product step required by §11.1; no metric was recomputed and nothing in `models/final/` was changed.
+  - `models/final/threshold_curve.json` spans τ = 0.05–0.95 (plan §P5.T2) so it does not contain the chosen τ = 0.03; the dashboard trade-off chart marks the curve range and shows the policy point from `policy.json`. Left unchanged (frozen artifact).
+  - Backend container uses `backend/requirements.txt` (runtime-only subset of the same pins) instead of the full requirements.txt (drops mlflow/optuna/jupyter, much smaller image). `models/final/` (4.2 MB) and `data/demo/` (216 KB) are now tracked in git so `docker compose up --build` works from a clean clone.
+  - Added `GET /api/figures/{name}` (whitelisted test PNGs) so the Model page can show the real calibration and ROC/PR figures.
+  - Threshold slider range 0.01–0.50 (human's Phase-7 brief) instead of plan's 0.05–0.95, because the policy τ = 0.03 lies outside the plan's range and the demo max risk is 0.17.
+
 ## Blockers / questions for the human
-- None. Phase 5 is fully verified. Ready to proceed to Phase 7 (Product: 24-bed demo cohort, FastAPI backend, Vite React frontend, and Docker deployment).
+- Record the 60-s fallback screen recording for the demo (see `reports/demo_script.md`).
+- Tests: 67/67 pass (53 `tests/` + 14 `backend/tests/`); ruff clean on src, tests, backend.
 
 ## Experiment log
 | Date | Run | Change | Key metric | Kept? |
@@ -118,6 +135,7 @@ Phase 5 complete — Calibration, alerting policy, SHAP explainability, subgroup
 | 2026-10-18 | P5.T3 | SHAP TreeExplainer & stability | Mean fold Jaccard = 0.5939, top features identified | Yes |
 | 2026-10-18 | P5.T4 | Dev OOF subgroup fairness | Subgroups across hospital, gender, age, unit | Yes |
 | 2026-10-18 | P5.T5 | MLflow final logging | Parameters, metrics, policy & artifacts registered | Yes |
+| 2026-10-19 | P7.T1 | Demo cohort (24 beds) | online vs batch max diff 0.0 | Yes |
 | 2026-10-18 | P5.T6 | Single Lockbox Test (8,068 pts) | **Utility = 0.4270 [0.3929, 0.4604], AUROC = 0.8475, Sens = 87.54%, Lead = 29.0h** | **FINAL** |
 
 
