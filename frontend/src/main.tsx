@@ -13,10 +13,12 @@ function Shell() {
   const { configError, retryConfig } = useReplay();
   return (
     <>
-      <DisclaimerBanner />
-      <TopBar />
+      <div className="app-header">
+        <DisclaimerBanner />
+        <TopBar />
+      </div>
       {configError ? (
-        <div className="state error">
+        <div className="state error" role="alert">
           {configError} <button onClick={retryConfig}>Retry</button>
         </div>
       ) : (

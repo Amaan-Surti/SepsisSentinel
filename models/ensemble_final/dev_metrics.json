@@ -1,0 +1,27 @@
+{
+  "label": "development, nested 5-fold CV",
+  "nested": {
+    "utility_norm": 0.4326952684279787,
+    "auroc": 0.8465736457629862,
+    "auprc": 0.1263899216415592,
+    "ece": 0.0008367988413793,
+    "patient_sensitivity": 0.8499573742540495,
+    "median_lead_time_h": 23.0,
+    "false_alerts_per_patient_day": 0.4146157880292272
+  },
+  "pooled_in_sample": {
+    "utility_norm": 0.4361616796728071,
+    "auroc": 0.8487954537537001,
+    "auprc": 0.1308234897571312,
+    "brier": 0.016567355014599498,
+    "ece": 0.0009188594516664244,
+    "patient_sensitivity": 0.8499573742540495,
+    "median_lead_time_h": 23.0,
+    "false_alerts_per_patient_day": 0.4092681508533666,
+    "event_ppv": 0.05884378632000344,
+    "alert_hour_rate": 0.16629174012111525
+  },
+  "pooled_note": "calibration, weight and policy fit on the same OOF rows (optimistic)",
+  "policy_dev_utility": 0.4361616796728107,
+  "lgbm_calibrator_refit_gap": 0.0
+}

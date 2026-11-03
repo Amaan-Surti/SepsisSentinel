@@ -82,9 +82,36 @@ def standardize(X: np.ndarray, train_rows: np.ndarray) -> Tuple[np.ndarray, Dict
     mean = np.nanmean(values, axis=0)
     std = np.nanstd(values, axis=0)
     std = np.where(std > 0, std, 1.0)
+    norm = {"mean": mean.tolist(), "std": std.tolist()}
+    return apply_norm(X, norm), norm
+
+
+def apply_norm(X: np.ndarray, norm: Dict[str, list]) -> np.ndarray:
+    """Apply saved LOCF z-score stats (float32, as in training); NaN becomes 0."""
+    mean = np.asarray(norm["mean"], dtype="float32")
+    std = np.asarray(norm["std"], dtype="float32")
     out = X.copy()
     out[:, :N_MEASURED] = np.nan_to_num((X[:, :N_MEASURED] - mean) / std).astype("float32")
-    return out, {"mean": mean.tolist(), "std": std.tolist()}
+    return out
+
+
+def standardize_extra(
+    E: np.ndarray, train_rows: np.ndarray
+) -> Tuple[np.ndarray, Dict[str, list]]:
+    """Z-score appended LightGBM feature columns with training-row stats; NaN becomes 0."""
+    mean = np.nanmean(E[train_rows], axis=0)
+    std = np.nanstd(E[train_rows], axis=0)
+    mean = np.nan_to_num(mean)
+    std = np.where(np.isfinite(std) & (std > 0), std, 1.0)
+    norm = {"mean": mean.tolist(), "std": std.tolist()}
+    return apply_extra_norm(E, norm), norm
+
+
+def apply_extra_norm(E: np.ndarray, norm: Dict[str, list]) -> np.ndarray:
+    """Apply saved stats for the appended feature columns."""
+    mean = np.asarray(norm["mean"], dtype="float32")
+    std = np.asarray(norm["std"], dtype="float32")
+    return np.nan_to_num((E.astype("float32") - mean) / std).astype("float32")
 
 
 def build_sequences(cfg: Optional[Dict[str, Any]] = None) -> Path:

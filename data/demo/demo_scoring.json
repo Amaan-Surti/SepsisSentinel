@@ -1,0 +1,23 @@
+{
+  "online_vs_batch_max_abs_diff_ensemble": 4.347382518768428e-07,
+  "tolerance": 1e-05,
+  "ensemble_policy": {
+    "threshold": 0.03,
+    "k": 1,
+    "sticky": 0
+  },
+  "weight_lgbm": 0.7,
+  "outcomes_lgbm": {
+    "nonseptic_quiet": 10,
+    "septic_early": 8,
+    "nonseptic_false_alert": 4,
+    "septic_missed_or_late": 2
+  },
+  "outcomes_ensemble": {
+    "nonseptic_quiet": 8,
+    "septic_early": 6,
+    "nonseptic_false_alert": 6,
+    "septic_missed_or_late": 2,
+    "septic_other": 2
+  }
+}

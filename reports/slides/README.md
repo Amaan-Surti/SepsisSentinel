@@ -1,6 +1,6 @@
 # Slides
 
-`slides.md` is a 14-slide deck written in [Marp](https://marp.app) Markdown. Speaker notes and layout guidance are the HTML comments under each slide (Marp shows them as presenter notes). Images are referenced relatively from `../figures/` and `../screenshots/`.
+`slides.md` is a 15-slide deck written in [Marp](https://marp.app) Markdown. Speaker notes and layout guidance are the HTML comments under each slide (Marp shows them as presenter notes). Images are referenced relatively from `../figures/` and `../screenshots/`.
 
 Pre-rendered exports: `slides.pptx` and `slides.pdf` (marp-cli 3.4.0).
 
@@ -29,9 +29,10 @@ Or open `slides.md` in VS Code with the "Marp for VS Code" extension and export.
 | 8 | Results vs baselines | new |
 | 9 | Ablation: missingness is a signal | new |
 | 10 | Cross-hospital finding | new |
-| 11 | Product | "One patient's stay" (real demo patient, Bed 16) |
-| 12 | Live demo | new |
-| 13 | Limitations and ethics | §13.4 |
-| 14 | Takeaways | – |
+| 11 | Development comparison (nested 5-fold CV) | P9: LightGBM vs GRU vs ensemble, dev only, dashed slide style |
+| 12 | Product | "One patient's stay" (real demo patient, Bed 16) |
+| 13 | Live demo | new |
+| 14 | Limitations and ethics | §13.4 |
+| 15 | Takeaways | – |
 
-All numbers match `reports/tables/` and `reports/report.md`. Timing: about 11 minutes of talk + 3 minutes of demo.
+All numbers match `reports/tables/` and `reports/report.md`. Timing: about 12 minutes of talk + 3 minutes of demo. Lockbox numbers (slides 7–8) belong to LightGBM; slide 11 holds the development-only ensemble numbers and is styled differently on purpose.

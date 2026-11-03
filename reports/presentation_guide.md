@@ -4,6 +4,8 @@ How to explain the whole project while demonstrating the live dashboard. It cove
 
 All numbers come from `reports/tables/` and are frozen. Quote them exactly.
 
+**One sentence to get right every time:** the served model is a LightGBM + GRU ensemble chosen on development data; its lockbox score has not been measured; the 0.4270 test result belongs to the LightGBM component alone.
+
 ---
 
 ## 0. The 30-second opening (say this before touching the laptop)
@@ -160,7 +162,21 @@ We also report clinical metrics a doctor would ask for: sensitivity, lead time, 
 | False alerts | **0.53 / patient-day** | about one false alarm per patient every 45 hours |
 | Calibration error (ECE) | **0.0027** | risk numbers are trustworthy |
 
-**Line:** "The development estimate was 0.4267 and the test result was 0.4270, a difference of 0.0003. That's what an honest, non-overfitted model looks like."
+**Line:** "The development estimate was 0.4267 and the test result was 0.4270, a difference of 0.0003. That's what an honest, non-overfitted model looks like." (These are the LightGBM model's numbers.)
+
+### What the app serves: the LightGBM + GRU ensemble (development data only)
+
+After the lockbox test I compared LightGBM with a unidirectional GRU on the development folds, using nested 5-fold cross-validation (each fold's calibration, blend weight and policy fitted on the other four folds). The search space was fixed before running it, and every configuration is reported.
+
+| Development, nested CV (not lockbox) | Utility | Sensitivity | False alerts/day |
+|---|---|---|---|
+| LightGBM | 0.4196 | 85.46% | 0.478 |
+| GRU (hidden 64) | 0.3529 | 78.13% | 0.400 |
+| **Ensemble 0.7 × LightGBM + 0.3 × GRU** | **0.4327** | **85.00%** | **0.415** |
+
+Paired bootstrap: ensemble − LightGBM **+0.0131 [+0.0072, +0.0190]**.
+
+**Line:** "The recurrent network on its own is clearly worse, but as a second opinion it helps a little, with fewer false alarms at the same sensitivity. That's a development-data result. I did **not** test the ensemble on the sealed test set, because that set was used once, for LightGBM. Opening it again to check a model I picked afterwards would make it a validation set. So the app serves the ensemble, and the test-set number stays with LightGBM."
 
 ### Versus baselines (same test patients)
 
@@ -201,12 +217,13 @@ Removing the "was it measured / how long ago" features drops utility from 0.4262
 
 | On screen | What it means | Behind the scenes |
 |---|---|---|
-| Dark banner "Research demonstration…" | Safety disclaimer | Always rendered; also returned by `/api/config` |
+| Dark banner "Decision support on retrospective data. Not a medical device." | Safety disclaimer, part of the sticky header | Always rendered; also returned by `/api/config` |
+| **Ensemble** badge next to the name | Which model is served (LightGBM + GRU ensemble, or LightGBM with `MODEL_KIND=lgbm`) | From `/api/config` (`model_kind`, `model_version`) |
 | **ICU HOUR 0 / 69** | The replay clock. All 24 patients are shown as if they were admitted at the same moment; 69 is the longest stay − 1 | The clock lives in the browser (`ReplayContext.tsx`); the backend is stateless and just answers "what did the world look like at hour *t*?" |
-| **Reset / −1h / Play / +1h** | Move through time | Every change of *t* triggers a fresh `GET /api/ward?t=…` |
+| **Reset / ‹ 1 h / Play / 1 h ›** | Move through time; keyboard: Space plays/pauses, ← / → step one hour | Every change of *t* triggers a fresh `GET /api/ward?t=…`; `/?t=16&truth=1` deep-links to an hour |
 | **Speed** 1× / 2× / 5× | 1 s, 0.5 s or 0.2 s per simulated hour | Browser timer |
 | **Threshold slider** (1%–50%) | The alert threshold τ; starts at the policy value 3% | Debounced 200 ms, then sent as `?threshold=`; the backend **recomputes alerts** for all beds at that threshold |
-| "policy 3.0%" link | Appears when you move the slider; snaps back to the trained policy | – |
+| "reset to policy 3.0%" link | Appears when you move the slider; snaps back to the trained policy | – |
 | **Show ground truth (demo)** | Reveals the real sepsis onset hour (a teaching feature; a real system wouldn't have it) | Sends `show_truth=true`; only then does the API include onset and outcome |
 
 ### 6.2 Ward page (`/`): "the nurse's station view"
@@ -215,29 +232,28 @@ Removing the "was it measured / how long ago" features drops utility from 0.4262
 
 | Column / element | Meaning |
 |---|---|
-| Summary chips (Alert / Watch / OK / Discharged) | Ward overview at this hour |
+| Summary chips (Alert / Watch / OK / Discharged) | Ward overview at this hour; each chip shows its shape, count and rule (e.g. "risk ≥ 3.0%") |
 | **Bed** | Shuffled bed number (septic patients aren't grouped) |
-| Age / Sex, Unit | Demographics; MICU = medical ICU, SICU = surgical ICU, "–" = unknown |
-| **ICU hr** | That patient's current hour (or "disch." once their stay has ended) |
-| **Risk bar + %** | Calibrated sepsis probability right now. The vertical tick marks the threshold; the bar is orange/amber/teal by level |
-| **12-h trend** | Sparkline of the last 12 hours of risk; dashed line = threshold |
-| HR, MAP, Temp, WBC | Last recorded heart rate, mean arterial pressure, temperature, white cell count ("—" = not measured yet) |
-| **Level** | **Alert** (risk ≥ threshold), **Watch** (risk ≥ half the threshold), **OK**. Always text + symbol, never colour alone (accessibility) |
-| **Alert since** | How long the alert has been continuously on |
-| Greyed rows at the bottom | Discharged patients (stay ended) |
+| Age / Sex, Unit | Demographics; MICU = medical ICU, SICU = surgical ICU, "Unknown" = not recorded |
+| **Risk bar + %** | Calibrated sepsis probability right now (2 decimals). The vertical tick marks the threshold; the bar is orange/amber/teal by level |
+| **Last 12 h** | Sparkline of the last 12 hours of risk; dashed line = threshold |
+| HR bpm, MAP mmHg, Temp °C, WBC ×10³/µL | Last recorded heart rate, mean arterial pressure, temperature, white cell count ("—" = not measured yet) |
+| **Status** | **Alert** (triangle, risk ≥ threshold), **Watch** (dot, risk ≥ half the threshold), **OK** (bar). Always shape + word, never colour alone (accessibility) |
+| **In alert** | How long the alert has been continuously on |
+| Grey rows at the bottom | Discharged patients: "Discharged after hour N" |
 
 **What to point out at hour 0:**
-- Beds 15 and 20 are already in **Alert**, and neither develops sepsis. "These are false alarms, and I've deliberately kept them in the demo. The cohort is 8 early catches, 2 misses, 10 quiet patients and 4 false-alarm patients. I'm showing you the real behaviour, not a highlight reel."
+- Bed 15 is already in **Alert**, and never develops sepsis (in LightGBM mode Bed 20 alerts too). "That's a false alarm, and I've deliberately kept it in the demo. The beds were picked to include early catches, misses, quiet patients and false alarms; under the ensemble they come out as 6 early catches, 2 flagged outside the 4–12 h window, 2 misses, 8 quiet and 6 with a false alarm. I'm showing you the real behaviour, not a highlight reel."
 
 **Why are risks so small (1–4%)?** "Because they're *calibrated*. Only 1.8% of hours are septic, so a 3.5% risk is genuinely high. An uncalibrated model would show scary-looking 60% numbers that mean nothing."
 
 **Behind the scenes (per request, ~14 ms):**
-1. For each bed, the backend computes `hour = min(t, stay − 1)` and looks up the **pre-computed calibrated risk** for that patient-hour (scored once with the frozen model when the demo cohort was built).
+1. For each bed, the backend computes `hour = min(t, stay − 1)` and looks up the **pre-computed calibrated risk** for that patient-hour (scored once by the served model with the same code as `/api/predict`).
 2. It re-applies the **alert policy at the requested threshold** to the whole risk series, results cached per threshold.
 3. It works out Alert/Watch/OK, the last 12 risks, last vitals, and how long the alert has been on.
 4. It sorts active beds by risk, discharged last, and returns JSON.
 
-**Click Play.** Narrate: "Each tick is one hour. New vitals arrive, features update, risks move." Bed 06 flickers into alert around hours 2–13 (another false alarm).
+**Click Play.** Narrate: "Each tick is one hour. New vitals arrive, features update, risks move." Bed 06 flickers in and out of alert from hour 2 (another false alarm).
 
 **Pause at hour 16:** **Bed 03** turns **Alert**. It's the first *septic* patient to alert.
 
@@ -247,9 +263,9 @@ Click **Bed 03**.
 
 | Element | Meaning |
 |---|---|
-| Header: age/sex, unit, ICU hour "16 of 24", **Risk now 3.55%**, **First alert hour 16**, level chip | Snapshot |
+| Header: age/sex, unit, ICU hour "16 of 24", **Risk now 3.64%** (3.55% in LightGBM mode), **First alert hour 16**, status chip | Snapshot |
 | **Calibrated sepsis risk chart** | Teal line = risk over time; dashed orange line = threshold; **orange shading** = hours in alert. The x-axis covers the whole stay, so the chart grows as time passes |
-| **Why this risk** panel | Top 5 SHAP factors pushing risk up *at this hour*: "FiO2 last measured 0h ago", "Temperature 38.4", "Temperature max over 6h: 38.4", "Temperature max over 12h: 38.4", "Unit: unknown ICU". Bar length = size of contribution |
+| **Why this risk** panel | A note says the reasons come from the LightGBM part of the ensemble. Top 5 SHAP factors pushing risk up *at this hour*: "FiO2 last measured 0h ago", "Temperature 38.4", "Temperature max over 6h: 38.4", "Temperature max over 12h: 38.4", "Unit: unknown ICU". Bar length = size of contribution |
 | Caveat line | "SHAP explains the model's behaviour, not the patient's physiology" |
 | **Vital signs** (5 charts) | HR, MAP, respiratory rate, temperature, SpO₂, all on the same time axis as the risk chart |
 | **Laboratory values** (4 dot plots) | Lactate, WBC, creatinine, platelets; dots only where a test was actually done (most hours have none) |
@@ -269,8 +285,8 @@ Step forward with **+1h** a few times and the **reasons change** ("FiO2 last mea
 ### 6.4 The threshold slider: the clinical trade-off
 
 On the Ward page around hour 19–40:
-- Drag down to **1.5%**: more beds alert (at hour 40: 6 alerts). "Catch more, earlier, but more false alarms."
-- Back to **3%** (policy link): 3 alerts.
+- Drag down to **1.5%**: more beds alert (at hour 40: 5 alerts). "Catch more, earlier, but more false alarms."
+- Back to **3%** (policy link): 2 alerts.
 - Up to **10%**: 0 alerts. "Quiet ward, but we'd miss people."
 
 **Say:** "Where to set this is a *clinical and staffing* decision, not a purely technical one. The model gives calibrated probabilities so a hospital can choose its own alarm budget."
@@ -281,16 +297,17 @@ On the Ward page around hour 19–40:
 
 | Element | Meaning | Source |
 |---|---|---|
-| 5 KPI tiles with 95% CIs | Headline test metrics | `reports/tables/final_test_metrics.csv` (frozen) |
-| Test metrics table | All 10 metrics incl. Brier, ECE, PPV, % hours in alert | same |
+| Served-model note | "The app serves the LightGBM + GRU ensemble… its lockbox score has not been measured" | `/api/config` |
+| **Lockbox test (LightGBM)** band (white) | Headline sentence + all 10 test metrics with CIs | `reports/tables/final_test_metrics.csv` (frozen) |
 | Versus baselines | Never-alert, SIRS, qSOFA, logistic regression vs ours | `final_test_baselines.csv` |
 | Threshold trade-off chart | Utility, sensitivity and false alerts/day vs threshold (dev data); dotted line = chosen policy | `models/final/threshold_curve.json` |
 | Calibration (test) | Reliability diagram: calibrated (teal) hugs the diagonal; uncalibrated (orange) doesn't | `fig_calibration_test.png` via `/api/figures` |
 | ROC and precision–recall | Discrimination curves | `fig_roc_pr_test.png` |
-| Cross-hospital table | The transfer experiment, R0–R3 | `cross_hospital.csv` |
-| Model card | Intended use, limits, ethics (Mitchell et al. format) | `reports/model_card.md` via `/api/model-card` |
+| **Development comparison (nested 5-fold CV)** band (dashed, blue-grey, tagged "Development data · not lockbox") | LightGBM vs GRU vs ensemble table, blend-weight table, bootstrap CIs, served configuration | `reports/tables/ensemble_dev_*.csv` via `dev_cv` in `/api/metrics` |
+| Cross-hospital table | The transfer experiment, R0 shown, R1–R3 behind a disclosure | `cross_hospital.csv` |
+| Model card (collapsed) | Served model, intended use, limits, ethics (Mitchell et al. format) | `reports/model_card.md` via `/api/model-card` |
 
-**Say:** "Nothing on this page is recomputed. The API serves the frozen tables from the single test run. The numbers in my slides, my report and this page are literally the same file."
+**Say:** "Nothing on this page is recomputed. The API serves the tables the pipeline wrote: the single LightGBM test run in the white band, the development comparison in the dashed band. They're never mixed in one table. The numbers in my slides, my report and this page are literally the same files."
 
 ---
 
@@ -301,32 +318,35 @@ OFFLINE (Python, run once)
  PhysioNet files → io → cleaning → splits → features (298) → LightGBM + Optuna
    → isotonic calibrator → policy search → models/final/  (frozen: lgbm.txt,
      calibrator.joblib, policy.json, feature_list.json, threshold_curve.json)
+ features → sequences → GRU (GPU, dev folds) → nested weight/variant search on dev
+   → models/ensemble_final/ (gru.pt, gru_calibrator.joblib, ensemble.json)
  Lockbox test patients → demo_cohort.py → data/demo/ (24 beds: rows, risks, SHAP reasons)
 
 ONLINE (Docker Compose)
  Browser ──► nginx :8080 (serves React app, proxies /api) ──► FastAPI :8000
-                                                         (loads models/final + data/demo once)
+                                                         (loads models/final, models/ensemble_final
+                                                          and data/demo once; GRU on CPU)
 ```
 
 ### Backend (FastAPI, `backend/app/`)
-- **`settings.py`:** where the files live (overridable via environment variables).
-- **`service.py`, `SepsisService`:** at startup (FastAPI *lifespan*) it loads the booster, calibrator, policy, feature list, threshold curve, a SHAP TreeExplainer and the demo tables **once**, so requests are fast.
+- **`settings.py`:** where the files live and which model to serve (`MODEL_KIND=ensemble`, the default, or `lgbm`), all overridable via environment variables.
+- **`service.py`, `SepsisService`:** at startup (FastAPI *lifespan*) it loads the booster, calibrator, policy, feature list, threshold curve, a SHAP TreeExplainer, the GRU and its calibrator and `ensemble.json` (weight + policy), and the demo tables **once**, so requests are fast.
 - **`schemas.py`:** Pydantic models that validate every request and response. A bad threshold (e.g. 1.5) or a negative hour gets a **422**; an unknown patient gets a **404**.
 - **`main.py`, endpoints:**
 
 | Endpoint | What it does |
 |---|---|
-| `GET /api/health` | liveness + model version (`lgbm-final-303r-<hash>`) |
-| `GET /api/config` | policy threshold, k, sticky, replay length, disclaimer |
+| `GET /api/health` | liveness + served model kind and version (`ensemble-w0.7-lgbm-final-303r-<hash>+gru-<hash>`) |
+| `GET /api/config` | served model, policy threshold, k, sticky, replay length, disclaimer |
 | `GET /api/ward?t&threshold` | all 24 beds at hour *t* |
 | `GET /api/patients/{id}?t&threshold&show_truth` | one patient's trajectory + reasons |
-| `POST /api/predict` | **the real online path:** raw hourly rows → clean → build features → LightGBM → calibrator → policy → SHAP for the last hour |
-| `GET /api/metrics` | frozen result tables |
+| `POST /api/predict` | **the real online path:** raw hourly rows → clean → build features → LightGBM → calibrator, and features → GRU (CPU) → calibrator → 0.7/0.3 blend → policy → SHAP (LightGBM) for the last hour |
+| `GET /api/metrics` | `lockbox_test` (LightGBM, frozen) and `dev_cv` (nested CV comparison) as separate sections, plus cross-hospital tables |
 | `GET /api/model-card` | model card |
 | `GET /api/figures/{name}` | whitelisted result figures |
 
-- **The key engineering guarantee: one code path.** `src/sepsis/inference.py` is used both to build the demo cohort and by `POST /api/predict`. An automated test sends a demo patient's raw rows to `/api/predict` and checks that the risks match the stored ones to within 10⁻⁶ (actual difference: 0). This rules out *training/serving skew*, the most common silent failure when ML goes to production.
-- **Speed:** a ward query takes about 14 ms; scoring a whole 70-hour stay from raw data takes about 315 ms.
+- **The key engineering guarantee: one code path.** `src/sepsis/inference.py` is used both to build the demo cohort and by `POST /api/predict`. An automated test sends a demo patient's raw rows to `/api/predict` and checks that the risks match the stored ones to within 10⁻⁶, for both model kinds; the ensemble's online path matches a batched pass over the precomputed features to 4.3 × 10⁻⁷. This rules out *training/serving skew*, the most common silent failure when ML goes to production.
+- **Speed:** a ward query takes about 14 ms. Scoring a whole 70-hour stay from raw data: LightGBM 242 ms vs ensemble 261 ms in the same process (the CPU GRU adds about 18 ms); over HTTP on the laptop both are around 300 ms (see STATUS.md for the measured runs).
 
 ### Frontend (React + TypeScript + Recharts, `frontend/src/`)
 - `api.ts`: typed fetch helpers. `state/ReplayContext.tsx`: clock, speed, threshold (debounced) and show-truth, shared by all pages.
@@ -334,12 +354,12 @@ ONLINE (Docker Compose)
 - If the backend dies, it shows "Cannot reach the API at /api — is the backend running?" with a Retry button.
 
 ### Deployment (Docker)
-- `backend/Dockerfile`: Python 3.11-slim + `libgomp1` (needed by LightGBM).
+- `backend/Dockerfile`: Python 3.11-slim + `libgomp1` (needed by LightGBM) + CPU-only PyTorch 2.6.0 for the GRU (no CUDA libraries; torch headers and package test suites removed).
 - `frontend/Dockerfile`: two stages, Node 20 builds the app and nginx 1.27 serves it and proxies `/api`.
 - `docker-compose.yml`: one command (`docker compose up --build`), with health checks; the UI waits until the API is healthy.
 
 ### Quality
-- **67 automated tests**, including causality, the utility scorer against hand-computed cases, the alert policy and the API. Ruff linting is clean.
+- **93 automated tests**, including causality (features, the GRU, and the full ensemble online path), the utility scorer against hand-computed cases, the alert policy, online-vs-batch parity, and the API under both model kinds. Ruff linting is clean.
 
 ---
 
@@ -355,7 +375,8 @@ ONLINE (Docker Compose)
 | | | Clinical rules SIRS / qSOFA | ✅ (B1, B2) | 0.0507 / 0.0122 |
 | | | XGBoost, CatBoost | ❌ | Same model family; LightGBM is faster on 1.2M rows (histogram + leaf-wise growth) and handles NaN natively. Expect similar accuracy |
 | | | Random forest | ❌ | Usually less accurate than boosting on tabular data; worse probability estimates |
-| | | GRU / LSTM / Transformer | ❌ (Phase 6 optional, skipped) | Needs a GPU, harder to explain and calibrate; boosted trees won the 2019 Challenge |
+| | | GRU alone | ❌ | Dev nested utility 0.3529 (hidden 64) vs LightGBM 0.4196 |
+| | | **LightGBM + GRU ensemble** | ✅ served | Dev nested utility 0.4327; Δ +0.0131 [+0.0072, +0.0190]; no lockbox estimate |
 | Hyperparameters | **Optuna** (TPE, 40 trials) | Defaults | ✅ | Defaults: utility 0.4183 vs tuned **0.4262** (dev) |
 | | | Grid / random search | ❌ | Bayesian search finds good settings in fewer trials |
 | Missing values | **Keep NaN + LOCF + "measured?" / "hours since" features** | Drop the missingness features | ✅ (ablation) | Utility 0.4262 → 0.4039 without them |
@@ -389,7 +410,7 @@ ONLINE (Docker Compose)
 - SHAP is exact for trees, so every alert can be explained.
 - It's easy to calibrate.
 - My hand-built temporal features (rolling windows, slopes, time-since) give trees the "memory" an RNN would learn.
-- Honest caveat: I didn't run the GRU comparison, so I can't claim trees beat RNNs *on this data*.
+- Evidence on this data (development, nested CV): a GRU alone scores 0.3529 vs LightGBM's 0.4196. Averaged with LightGBM it adds a little (0.4327), so the app serves the ensemble, with the GRU as a second opinion.
 
 **Why not XGBoost or CatBoost?** Same family of algorithm. LightGBM's histogram-based, leaf-wise trees are typically the fastest on millions of rows. I'd expect very similar accuracy; the choice is about speed and memory, not a big accuracy gap.
 
@@ -413,7 +434,8 @@ ONLINE (Docker Compose)
 4. **"Early."** 87.5% of septic patients flagged in the useful window; median first alert 29 hours before onset.
 5. **"Beats the rules doctors use today."** 8.4× SIRS, +75% over logistic regression.
 6. **"I found where it breaks."** A 32.7% drop when moving hospitals, and *why*: the threshold, not the ranking. That finding is more valuable than another decimal of accuracy.
-7. **"It's a real product, not a notebook."** API, dashboard, Docker, 67 automated tests, and the same code path for training and serving, proven by a test.
+7. **"It's a real product, not a notebook."** API, dashboard, Docker, 93 automated tests, and the same code path for training and serving, proven by a test.
+8. **"I kept the claims apart."** The ensemble was chosen on development data with a search fixed in advance; the sealed test number stays with the model it measured.
 
 ---
 
@@ -431,19 +453,20 @@ Full answers are in `reports/viva_qa.md`.
 | "Why did it miss Bed 07?" | His risk never exceeded 1.3%; the signals weren't there in his data. That's the 12.5% it misses. Lowering the threshold would catch more at the cost of alarms. |
 | "29 hours early sounds too good." | The low threshold means some patients are flagged early and stay flagged. The scoring rule gives no credit that early, so sensitivity in the −12 h to +3 h window (87.5%) is the fairer number. |
 | "How does it compare to the Challenge winners?" | Not directly comparable: their test included an unseen third hospital. Our own A→B experiment (0.2963) shows how much harder that is. |
-| "What would you do next?" | Run the GRU comparison, alert-budget-constrained thresholds, few-shot recalibration for a new hospital, clinician review of explanations. |
+| "What would you do next?" | Measure the ensemble once on a new untouched dataset, alert-budget-constrained thresholds, few-shot recalibration for a new hospital, clinician review of explanations. |
+| "Why not test the ensemble on the lockbox?" | It was opened once, for LightGBM. Testing a model chosen afterwards would turn it into a validation set; the ensemble's evidence is development-only and labelled that way. |
 
 ---
 
 ## 11. Demo-day checklist
 
 - [ ] Docker Desktop running → `docker compose up --build` → both containers healthy (`docker compose ps`)
-- [ ] http://localhost:8080 open, 100% zoom; replay at hour 0, speed 2×, threshold 3.0%, ground truth **off**
+- [ ] http://localhost:8080 open, 100% zoom; badge reads **Ensemble**; replay at hour 0, speed 2×, threshold 3.0%, ground truth **off**
 - [ ] Slides open: `reports/slides/slides.pptx` (or `.pdf`)
 - [ ] Key beds memorised:
   - **Bed 03** alerts at h16, onset h22 (main story)
   - **Bed 07** missed, onset h28
-  - **Beds 15 / 20** false alarms at h0
-  - **Bed 16** alert at h30, onset h42 (backup)
+  - **Bed 15** false alarm at h0 (Bed 20 too in LightGBM mode)
+  - **Bed 16** first alert at h28, onset h42 (backup; LightGBM mode: h30)
 - [ ] Fallback screen recording ready in case the laptop or Docker fails
 - [ ] Close with the disclaimer: *"Decision support on retrospective data. Not a medical device."*

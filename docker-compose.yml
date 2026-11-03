@@ -3,7 +3,10 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    image: sepsis-sentinel-backend:1.0
+    image: sepsis-sentinel-backend:1.1
+    environment:
+      # ensemble (default) = LightGBM + GRU chosen on dev data; lgbm = frozen LightGBM alone
+      MODEL_KIND: ${MODEL_KIND:-ensemble}
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -17,7 +20,7 @@ services:
   frontend:
     build:
       context: ./frontend
-    image: sepsis-sentinel-frontend:1.0
+    image: sepsis-sentinel-frontend:1.1
     ports:
       - "8080:80"
     restart: unless-stopped

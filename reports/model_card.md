@@ -1,14 +1,24 @@
-# Model Card — SepsisSentinel LightGBM (final)
+# Model Card — SepsisSentinel (served: LightGBM + GRU ensemble)
 
-Format follows Mitchell et al., "Model Cards for Model Reporting" (FAT* 2019). All numbers are copied from `reports/tables/` and `models/final/`; the lockbox test set was evaluated exactly once (Phase 5.T6).
+Format follows Mitchell et al., "Model Cards for Model Reporting" (FAT* 2019). All numbers are copied from `reports/tables/`, `models/final/` and `models/ensemble_final/`; the lockbox test set was evaluated exactly once (Phase 5.T6), on the LightGBM model.
 
-## Model details
+## Served model
+
+**The served model is a LightGBM + GRU ensemble chosen on development data; its lockbox score has not been measured; the 0.4270 test result belongs to the LightGBM component alone.**
+
+- **Blend:** risk = 0.7 × calibrated LightGBM + 0.3 × calibrated GRU, then the alert policy τ = 0.03, k = 1, sticky = 0 (`models/ensemble_final/ensemble.json`). The API can serve LightGBM alone with `MODEL_KIND=lgbm`.
+- **LightGBM component:** the frozen `models/final/` model and calibrator described below, unchanged.
+- **GRU component:** input projection 111 → 128, 2-layer *unidirectional* GRU (hidden 64), per-hour head; focal loss (α 0.5, γ 2); trained on all 32,268 development patients for 5 epochs (median best fold epoch + 1); isotonic calibration fitted on its development out-of-fold predictions. Runs on CPU in float32 at inference. Inputs: 34 LOCF values (z-scored), 34 measured flags, 34 hours-since-measured, SIRS, partial SOFA, age, sex, unit, admission time, ICU hour.
+- **How it was chosen (development data only, nested 5-fold CV):** blend weight from {0.5, 0.6, 0.7, 0.8, 0.9} and two GRU variants (hidden 64; 32 extra LightGBM features) fixed in advance; for each fold, calibration, weight and policy were fit on the other four folds. Nested utility: LightGBM 0.4196, GRU (hidden 64) 0.3529, ensemble 0.4327; paired bootstrap ensemble − LightGBM +0.0131 [+0.0072, +0.0190]. These are development numbers and are not comparable with the lockbox figures below.
+- **Explanations:** SHAP reasons come from the LightGBM component only; the GRU part has no per-feature explanation.
+
+## Model details (LightGBM component)
 
 - **Developer:** Amaan Surti, DSML course project (solo), 2026.
 - **Model type:** gradient-boosted decision trees, LightGBM 4.5.0, binary objective, followed by isotonic calibration (scikit-learn 1.5.1) and a threshold alert policy.
 - **Version:** `models/final/lgbm.txt`, 303 boosting rounds (mean best iteration across 5 dev folds = 275.6, scaled to all dev rows).
 - **Hyperparameters (Optuna, 40 trials, best = trial 13):** learning_rate 0.0102, num_leaves 126, min_child_samples 847, feature_fraction 0.897, bagging_fraction 0.517 (freq 1), lambda_l2 0.301, scale_pos_weight 2.79, max_bin 255, seed 42, deterministic.
-- **Inputs:** 298 causal features per ICU hour computed from the 40 PhysioNet 2019 variables using only the current and earlier hours: LOCF values (34), measured-this-hour flags (34), hours since last measurement (34), 24-h lab counts (26), rolling mean/min/max/std/slope over 6/12/24 h (137), 6-h differences (7), deltas vs patient baseline (11), clinical indices (6), partial SIRS/qSOFA/SOFA scores (4), static (5). `hospital`, `patient_id`, `Unit1`, `Unit2` and the label are never inputs.
+- **Inputs:** 298 causal features per ICU hour computed from the 40 PhysioNet 2019 variables using only the current and earlier hours: LOCF values (34), measured-this-hour flags (34), hours since last measurement (34), 24-h lab counts (26), rolling mean/min/max/std/slope over 6/12/24 h (137), 6-h differences (7), deltas vs patient baseline (11), clinical indices (6), partial SIRS/qSOFA/SOFA scores (4), static (5). `hospital`, `patient_id`, the raw `Unit1`/`Unit2` columns and the label are never inputs; the unit enters only as the combined code `static__unit` (MICU / SICU / unknown).
 - **Output:** calibrated probability that the hour carries `SepsisLabel = 1` (i.e. sepsis onset within the next 6 h or already ongoing). Alert at hour *t* if calibrated risk ≥ τ.
 - **Alert policy (`models/final/policy.json`):** τ = 0.03, k = 1 consecutive hour, sticky = 0 h; chosen by grid search on calibrated dev out-of-fold predictions (dev OOF normalized utility 0.4267).
 - **Explanations:** SHAP TreeExplainer (shap 0.46.0); the API returns the top-5 positive contributions per hour as plain-language text.
@@ -33,11 +43,11 @@ Format follows Mitchell et al., "Model Cards for Model Reporting" (FAT* 2019). A
 - **Labels:** Sepsis-3 based labels supplied by the Challenge; `SepsisLabel = 1` from 6 h before clinical onset *t_sepsis* onward.
 - **Pre-processing:** physiological range cleaning (max loss 0.305% of observed values, FiO2), FiO2 percentages converted to fractions, no backward fill, no imputation beyond causal LOCF.
 
-## Metrics
+## Metrics — lockbox test (LightGBM component)
 
-Primary metric: official Challenge normalized utility. Test values with 95% bootstrap CIs (1,000 patient resamples, seed 42).
+Primary metric: official Challenge normalized utility. Test values with 95% bootstrap CIs (1,000 patient resamples, seed 42). These belong to the LightGBM model alone; the ensemble was not evaluated on the lockbox.
 
-| Metric (lockbox test, 8,068 patients) | Value | 95% CI |
+| Metric (lockbox test, 8,068 patients, LightGBM) | Value | 95% CI |
 |---|---|---|
 | Normalized utility | 0.4270 | 0.3929 – 0.4604 |
 | AUROC (hourly) | 0.8475 | 0.7965 – 0.8990 |
@@ -71,7 +81,18 @@ Primary metric: official Challenge normalized utility. Test values with 95% boot
 
 Removing missingness features (R1), per-hospital standardization (R2) or removing admission timing (R3) did not close the gap (A → B utility 0.2931, 0.2882, 0.2502).
 
-## Subgroup results (lockbox test)
+## Development comparison (nested 5-fold CV, not lockbox)
+
+| Model (32,268 development patients) | Utility | AUROC | Sensitivity | False alerts/day | Median lead |
+|---|---|---|---|---|---|
+| LightGBM | 0.4196 | 0.8421 | 85.46% | 0.478 | 23 h |
+| GRU, hidden 64 | 0.3529 | 0.8119 | 78.13% | 0.400 | 22 h |
+| Ensemble with plain GRU | 0.4255 | 0.8438 | 85.00% | 0.429 | 23 h |
+| **Ensemble with GRU hidden 64 (served)** | **0.4327** | **0.8466** | **85.00%** | **0.415** | **23 h** |
+
+Source: `reports/tables/ensemble_dev_comparison.csv`, `ensemble_dev_weights.csv`, `ensemble_dev_bootstrap.csv`. Weight 0.7 was chosen by all five folds for the served variant.
+
+## Subgroup results (lockbox test, LightGBM)
 
 | Subgroup | Utility | AUROC | Sensitivity | False alerts/day |
 |---|---|---|---|---|
@@ -101,6 +122,7 @@ Global mean |SHAP| ranking (dev sample of 300 septic patients + 20,000 non-septi
 - Only two hospitals are available; external validity is simulated with A ↔ B transfer, and it drops substantially (A → B utility −32.7%). The hidden Challenge hospital C was not available.
 - The low threshold (τ = 0.03) trades alarm burden for sensitivity: 20.2% of hours are in alert and event PPV is 4.6%. Any threshold trades missed cases against alarm fatigue.
 - Strong reliance on stay-timing and measurement-timing features means the model partly learns care processes of these hospitals.
+- The served ensemble has no lockbox estimate; the GRU half adds performance only on development data.
 - Not a medical device.
 
 ## Ethical considerations
@@ -108,4 +130,5 @@ Global mean |SHAP| ranking (dev sample of 300 septic patients + 20,000 non-septi
 - Data are public, de-identified and used under the PhysioNet open-access terms; no re-identification was attempted.
 - `hospital` is never an input; sex and age are inputs (as in the Challenge data) and their subgroup performance is reported above.
 - False alerts cost clinician attention; missed alerts cost patients. Both are reported together rather than one headline number.
-- The dashboard always shows the disclaimer: "Research demonstration on retrospective ICU data. Not approved for clinical diagnostic use."
+- The dashboard shows the disclaimer "Decision support on retrospective data. Not a medical device." in the header and footer of every page.
+- The ensemble adds a component without a lockbox estimate; its expected test performance is unknown (the development gain of +0.0131 nested utility is the only evidence) and it is labelled that way wherever it is served.

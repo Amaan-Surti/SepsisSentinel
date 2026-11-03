@@ -1,0 +1,40 @@
+{
+  "kind": "lgbm+gru",
+  "weight_lgbm": 0.7,
+  "weight_gru": 0.3,
+  "policy": {
+    "threshold": 0.03,
+    "k": 1,
+    "sticky": 0
+  },
+  "gru_variant": "h64",
+  "gru_epochs": 5,
+  "gru_best_epochs_cv": [
+    4,
+    3,
+    2,
+    4,
+    4
+  ],
+  "focal_alpha": 0.5,
+  "gru_config": {
+    "hidden": 64,
+    "layers": 2,
+    "dropout": 0.2,
+    "input_proj": 128,
+    "batch_size": 64,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "max_epochs": 30,
+    "patience": 5,
+    "grad_clip": 1.0,
+    "focal_gamma": 2.0,
+    "focal_alpha": 0.5,
+    "max_len": 336
+  },
+  "extra_features": [],
+  "lgbm_dir": "models/final",
+  "git_sha": "a612d30",
+  "created_utc": "2026-11-03T14:37:58Z",
+  "data": "development split only (32,268 patients); lockbox not used"
+}

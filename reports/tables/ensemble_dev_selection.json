@@ -1,0 +1,23 @@
+{
+  "weights": [
+    0.5,
+    0.6,
+    0.7,
+    0.8,
+    0.9
+  ],
+  "variants": {
+    "plain": "models/gru/oof.parquet",
+    "h64": "models/gru_h64/oof.parquet",
+    "top32": "models/gru_top32/oof.parquet"
+  },
+  "chosen_variant": "h64",
+  "reason": "best nested ensemble utility and CI low +0.0033 > 0",
+  "pooled_weight": 0.7,
+  "pooled_policy": {
+    "threshold": 0.03,
+    "k": 1,
+    "sticky": 0
+  },
+  "nested_utility": 0.43269526842797873
+}

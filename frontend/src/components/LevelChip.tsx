@@ -1,12 +1,14 @@
 import { Level } from "../api";
+import { StatusGlyph } from "./Icons";
 
 const LABEL: Record<Level, string> = { ALERT: "Alert", WATCH: "Watch", OK: "OK" };
-const GLYPH: Record<Level, string> = { ALERT: "▲", WATCH: "●", OK: "–" };
 
+/** Status is always shape + word, never colour alone. */
 export function LevelChip({ level }: { level: Level }) {
   return (
     <span className={`chip chip-${level.toLowerCase()}`}>
-      <span aria-hidden="true">{GLYPH[level]}</span> {LABEL[level]}
+      <StatusGlyph level={level} />
+      {LABEL[level]}
     </span>
   );
 }

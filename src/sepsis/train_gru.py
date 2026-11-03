@@ -1,16 +1,22 @@
-"""GRU 5-fold dev training for SepsisSentinel — P6.T2.
+"""GRU 5-fold dev training for SepsisSentinel — P6.T2, plus the final dev-only GRU.
 
 Same folds as LightGBM, so OOF predictions compare directly. The lockbox is not
 used: sequences.py only contains dev patients. The GRU is unidirectional, so an
 hour's output depends only on that hour and earlier ones.
+
+Variants (fixed before any variant result was seen): `--hidden 64`, and
+`--extra-top-k 32`, which appends the 32 highest-gain LightGBM features. For fold k
+those come from models/lgbm_tuned/fold{k}.txt, trained without fold k.
 """
 
 import argparse
 import json
 import logging
+import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
+import lightgbm as lgb
 import numpy as np
 import pandas as pd
 import torch
@@ -19,7 +25,7 @@ from torch import nn
 
 from sepsis.config import load_config
 from sepsis.constants import SEED
-from sepsis.sequences import standardize
+from sepsis.sequences import input_columns, standardize, standardize_extra
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +109,61 @@ def predict(
     return probs
 
 
+def train_epoch(
+    model: nn.Module,
+    optim: torch.optim.Optimizer,
+    scaler: torch.amp.GradScaler,
+    X: np.ndarray,
+    y: np.ndarray,
+    offsets: np.ndarray,
+    order: np.ndarray,
+    alpha: float,
+    gcfg: Dict[str, Any],
+    device: torch.device,
+) -> float:
+    """One pass over the patients in order; returns mean focal loss per real hour."""
+    model.train()
+    total, hours = 0.0, 0
+    for s in range(0, len(order), gcfg["batch_size"]):
+        xb, yb, mask = pad_batch(X, y, offsets, order[s : s + gcfg["batch_size"]], gcfg["max_len"])
+        xb, yb, mask = xb.to(device), yb.to(device), mask.to(device)
+        optim.zero_grad(set_to_none=True)
+        with torch.autocast(device.type, enabled=device.type == "cuda"):
+            loss_all = focal_loss(model(xb).float(), yb, alpha, gcfg["focal_gamma"])
+            loss = loss_all[mask].mean()
+        scaler.scale(loss).backward()
+        scaler.unscale_(optim)
+        nn.utils.clip_grad_norm_(model.parameters(), gcfg["grad_clip"])
+        scaler.step(optim)
+        scaler.update()
+        total += loss.item() * int(mask.sum())
+        hours += int(mask.sum())
+    return total / hours
+
+
+def top_lgbm_features(model_path: str | Path, k: int) -> List[str]:
+    """Highest-gain LightGBM features that are not already GRU inputs."""
+    booster = lgb.Booster(model_file=str(model_path))
+    names = np.array(booster.feature_name())
+    gain = booster.feature_importance("gain")
+    skip = set(input_columns()) | {"hour"}
+    return [n for n in names[np.argsort(-gain, kind="stable")] if n not in skip][:k]
+
+
+def load_feature_block(
+    cfg: Dict[str, Any], columns: Sequence[str], patients: pd.DataFrame, hours: np.ndarray
+) -> np.ndarray:
+    """Feature columns for the sequence rows, in sequence row order (dev patients only)."""
+    df = pd.read_parquet(
+        cfg["paths"]["features"],
+        columns=["patient_id", "hour", *columns],
+        filters=[("patient_id", "in", patients["patient_id"].tolist())],
+    ).sort_values(["patient_id", "hour"])
+    if len(df) != len(hours) or not np.array_equal(df["hour"].to_numpy(), hours):
+        raise ValueError("Feature rows do not line up with the sequence rows")
+    return df[list(columns)].to_numpy("float32")
+
+
 def train_one_fold(
     X_raw: np.ndarray,
     y: np.ndarray,
@@ -113,6 +174,7 @@ def train_one_fold(
     cfg: Dict[str, Any],
     device: torch.device,
     seed: int = SEED,
+    extra: Optional[np.ndarray] = None,
 ) -> Dict[str, Any]:
     """Train on folds != fold, early-stop on fold's AUPRC, return its predictions."""
     gcfg = cfg["gru"]
@@ -125,6 +187,9 @@ def train_one_fold(
     train_rows = np.repeat(folds != fold, n_rows_per_patient)
     val_rows = np.repeat(folds == fold, n_rows_per_patient)
     X, norm = standardize(X_raw, train_rows)
+    if extra is not None:
+        E, norm["extra"] = standardize_extra(extra, train_rows)
+        X = np.hstack([X, E])
 
     model = SepsisGRU(X.shape[1], gcfg).to(device)
     optim = torch.optim.AdamW(
@@ -136,33 +201,15 @@ def train_one_fold(
     best: Dict[str, Any] = {"auprc": -1.0, "epoch": -1, "state": None}
     history: List[Dict[str, float]] = []
     for epoch in range(gcfg["max_epochs"]):
-        model.train()
         order = rng.permutation(train_idx)
-        total, hours = 0.0, 0
-        for s in range(0, len(order), gcfg["batch_size"]):
-            xb, yb, mask = pad_batch(
-                X, y, offsets, order[s : s + gcfg["batch_size"]], gcfg["max_len"]
-            )
-            xb, yb, mask = xb.to(device), yb.to(device), mask.to(device)
-            optim.zero_grad(set_to_none=True)
-            with torch.autocast(device.type, enabled=device.type == "cuda"):
-                loss_all = focal_loss(model(xb).float(), yb, alpha, gcfg["focal_gamma"])
-                loss = loss_all[mask].mean()
-            scaler.scale(loss).backward()
-            scaler.unscale_(optim)
-            nn.utils.clip_grad_norm_(model.parameters(), gcfg["grad_clip"])
-            scaler.step(optim)
-            scaler.update()
-            total += loss.item() * int(mask.sum())
-            hours += int(mask.sum())
-
+        loss = train_epoch(model, optim, scaler, X, y, offsets, order, alpha, gcfg, device)
         val_probs = predict(model, X, y, offsets, val_idx, device)[val_rows]
         auprc = float(average_precision_score(y[val_rows], val_probs))
         sched.step(auprc)
-        history.append({"epoch": epoch, "loss": total / hours, "val_auprc": auprc})
+        history.append({"epoch": epoch, "loss": loss, "val_auprc": auprc})
         logger.info(
             "fold %d alpha %.2f epoch %d loss %.5f val AUPRC %.4f",
-            fold, alpha, epoch, total / hours, auprc,
+            fold, alpha, epoch, loss, auprc,
         )
         if auprc > best["auprc"]:
             state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
@@ -186,40 +233,90 @@ def train_one_fold(
     }
 
 
-def run_cv(cfg: Optional[Dict[str, Any]] = None, output_dir: str = "models/gru") -> pd.DataFrame:
-    """Pick focal alpha on fold 0, then train the remaining folds and save OOF."""
-    if cfg is None:
-        cfg = load_config()
+def load_sequences(cfg: Dict[str, Any]) -> Dict[str, Any]:
+    """Dev-only sequence arrays written by sequences.py."""
     seq_dir = Path(cfg["paths"]["features"]).parent / "sequences"
-    X_raw = np.load(seq_dir / "X.npy")
-    y = np.load(seq_dir / "y.npy")
-    hours = np.load(seq_dir / "hours.npy")
-    offsets = np.load(seq_dir / "offsets.npy")
-    patients = pd.read_csv(seq_dir / "patients.csv")
-    folds = patients["fold"].to_numpy()
+    return {
+        "X": np.load(seq_dir / "X.npy"),
+        "y": np.load(seq_dir / "y.npy"),
+        "hours": np.load(seq_dir / "hours.npy"),
+        "offsets": np.load(seq_dir / "offsets.npy"),
+        "patients": pd.read_csv(seq_dir / "patients.csv"),
+    }
 
+
+def _device() -> torch.device:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logger.info("Device: %s", torch.cuda.get_device_name(0) if device.type == "cuda" else "cpu")
+    return device
+
+
+def run_cv(
+    cfg: Optional[Dict[str, Any]] = None,
+    output_dir: str = "models/gru",
+    alpha: Optional[float] = None,
+    extra_top_k: int = 0,
+) -> pd.DataFrame:
+    """Train 5 folds and save OOF. Without a fixed alpha, pick it on fold 0 first."""
+    if cfg is None:
+        cfg = load_config()
+    seq = load_sequences(cfg)
+    X_raw, y, hours, offsets = seq["X"], seq["y"], seq["hours"], seq["offsets"]
+    patients = seq["patients"]
+    folds = patients["fold"].to_numpy()
+    device = _device()
     out_dir = Path(output_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    alpha_runs = [
-        train_one_fold(X_raw, y, offsets, folds, 0, a, cfg, device)
-        for a in cfg["gru"].get("alpha_grid", [0.5, 0.75, 0.9])
-    ]
-    best_run = max(alpha_runs, key=lambda r: r["auprc"])
-    alpha = best_run["alpha"]
-    logger.info("Selected focal alpha %.2f on fold 0", alpha)
+    fold_ids = sorted(int(f) for f in set(folds))
+    extra_cols: Dict[int, List[str]] = {}
+    extra_all: Optional[np.ndarray] = None
+    union: List[str] = []
+    if extra_top_k:
+        lgbm_dir = Path(cfg["paths"]["models"]) / "lgbm_tuned"
+        extra_cols = {
+            f: top_lgbm_features(lgbm_dir / f"fold{f}.txt", extra_top_k) for f in fold_ids
+        }
+        union = sorted(set().union(*extra_cols.values()))
+        extra_all = load_feature_block(cfg, union, patients, hours)
 
-    results = [best_run]
-    for fold in sorted(set(folds) - {0}):
-        results.append(train_one_fold(X_raw, y, offsets, folds, int(fold), alpha, cfg, device))
+    def extra_for(fold: int) -> Optional[np.ndarray]:
+        if extra_all is None:
+            return None
+        return extra_all[:, [union.index(c) for c in extra_cols[fold]]]
+
+    alpha_runs: List[Dict[str, Any]] = []
+    results: List[Dict[str, Any]] = []
+    if alpha is None:
+        alpha_runs = [
+            train_one_fold(X_raw, y, offsets, folds, 0, a, cfg, device, extra=extra_for(0))
+            for a in cfg["gru"].get("alpha_grid", [0.5, 0.75, 0.9])
+        ]
+        best_run = max(alpha_runs, key=lambda r: r["auprc"])
+        alpha = float(best_run["alpha"])
+        logger.info("Selected focal alpha %.2f on fold 0", alpha)
+        results.append(best_run)
+    for fold in fold_ids:
+        if any(r["fold"] == fold for r in results):
+            continue
+        results.append(
+            train_one_fold(
+                X_raw, y, offsets, folds, fold, alpha, cfg, device, extra=extra_for(fold)
+            )
+        )
 
     oof = np.full(len(y), np.nan)
     for r in results:
         oof[r["val_rows"]] = r["probs"][r["val_rows"]]
         torch.save(
-            {"state": r["state"], "norm": r["norm"], "alpha": alpha, "n_inputs": X_raw.shape[1]},
+            {
+                "state": r["state"],
+                "norm": r["norm"],
+                "alpha": alpha,
+                "n_inputs": X_raw.shape[1] + len(extra_cols.get(r["fold"], [])),
+                "config": dict(cfg["gru"]),
+                "extra_features": extra_cols.get(r["fold"], []),
+            },
             out_dir / f"fold{r['fold']}.pt",
         )
     if np.isnan(oof).any():
@@ -232,20 +329,98 @@ def run_cv(cfg: Optional[Dict[str, Any]] = None, output_dir: str = "models/gru")
     keys = ("fold", "alpha", "best_epoch", "auprc", "auroc", "history")
     meta = {
         "selected_alpha": alpha,
+        "gru_config": dict(cfg["gru"]),
+        "extra_top_k": extra_top_k,
+        "extra_features": {str(f): c for f, c in extra_cols.items()},
         "alpha_check": [{k: r[k] for k in keys} for r in alpha_runs],
-        "folds": [{k: r[k] for k in keys} for r in results],
+        "folds": [{k: r[k] for k in keys} for r in sorted(results, key=lambda r: r["fold"])],
     }
     with open(out_dir / "meta.json", "w") as f:
         json.dump(meta, f, indent=2)
     return oof_df
 
 
+def git_sha() -> str:
+    """Short commit hash of HEAD, or "unknown"."""
+    try:
+        out = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True
+        )
+        return out.stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
+def train_final(
+    cfg: Dict[str, Any],
+    epochs: int,
+    alpha: float,
+    out_path: str | Path,
+    extra_features: Sequence[str] = (),
+    seed: int = SEED,
+) -> Dict[str, Any]:
+    """Train on all dev patients for a fixed number of epochs (no validation data)."""
+    gcfg = cfg["gru"]
+    seq = load_sequences(cfg)
+    X_raw, y, offsets, patients = seq["X"], seq["y"], seq["offsets"], seq["patients"]
+    device = _device()
+    torch.manual_seed(seed)
+    rng = np.random.default_rng(seed)
+
+    all_rows = np.ones(len(y), dtype=bool)
+    X, norm = standardize(X_raw, all_rows)
+    if extra_features:
+        E_raw = load_feature_block(cfg, list(extra_features), patients, seq["hours"])
+        E, norm["extra"] = standardize_extra(E_raw, all_rows)
+        X = np.hstack([X, E])
+
+    model = SepsisGRU(X.shape[1], gcfg).to(device)
+    optim = torch.optim.AdamW(
+        model.parameters(), lr=gcfg["lr"], weight_decay=gcfg["weight_decay"]
+    )
+    scaler = torch.amp.GradScaler("cuda", enabled=device.type == "cuda")
+    idx = np.arange(len(patients))
+    history = []
+    for epoch in range(epochs):
+        order = rng.permutation(idx)
+        loss = train_epoch(model, optim, scaler, X, y, offsets, order, alpha, gcfg, device)
+        history.append({"epoch": epoch, "loss": loss})
+        logger.info("final GRU epoch %d loss %.5f", epoch, loss)
+
+    bundle = {
+        "state": {k: v.cpu().clone() for k, v in model.state_dict().items()},
+        "norm": norm,
+        "alpha": alpha,
+        "n_inputs": int(X.shape[1]),
+        "config": dict(gcfg),
+        "extra_features": list(extra_features),
+        "epochs": epochs,
+        "n_patients": int(len(patients)),
+        "n_rows": int(len(y)),
+        "history": history,
+        "git_sha": git_sha(),
+    }
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(bundle, out_path)
+    logger.info("Saved final GRU (%d patients, %d epochs) to %s", len(patients), epochs, out_path)
+    return bundle
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train the GRU on dev folds")
     parser.add_argument("--output-dir", default="models/gru")
+    parser.add_argument("--alpha", type=float, default=None, help="Fixed focal alpha")
+    parser.add_argument("--hidden", type=int, default=None, help="Override the GRU hidden size")
+    parser.add_argument(
+        "--extra-top-k", type=int, default=0, help="Append the k highest-gain LightGBM features"
+    )
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    run_cv(output_dir=args.output_dir)
+    cfg = load_config()
+    if args.hidden is not None:
+        cfg["gru"]["hidden"] = args.hidden
+    run_cv(cfg, output_dir=args.output_dir, alpha=args.alpha, extra_top_k=args.extra_top_k)
 
 
 if __name__ == "__main__":

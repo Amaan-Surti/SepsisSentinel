@@ -13,3 +13,4 @@ data/processed
 data/splits
 models/*
 !models/final
+!models/ensemble_final
