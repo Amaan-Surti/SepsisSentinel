@@ -1,5 +1,6 @@
-"""API tests for SepsisSentinel backend (P7.T2)."""
+"""API tests for SepsisSentinel backend (P7.T2; both served model kinds since P9)."""
 
+import json
 import math
 
 import numpy as np
@@ -7,44 +8,73 @@ import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
 
-from backend.app.main import app
-from backend.app.settings import get_settings
+from backend.app.main import create_app
+from backend.app.settings import Settings, get_settings
 from sepsis.constants import RAW_COLUMNS
 
 settings = get_settings()
+POLICY_KEYS = ("threshold", "k", "sticky")
+FROZEN_POLICY = {"threshold": 0.03, "k": 1, "sticky": 0}
+OUTCOMES = {"septic_early", "septic_missed_or_late", "septic_other", "nonseptic_quiet",
+            "nonseptic_false_alert"}
 pytestmark = pytest.mark.skipif(
-    not (settings.demo_dir / "demo_predictions.parquet").exists(),
-    reason="demo cohort not built (python -m sepsis.demo_cohort)",
+    not (settings.demo_dir / "demo_predictions_lgbm.parquet").exists()
+    or not (settings.ensemble_dir / "ensemble.json").exists(),
+    reason="demo cohort / ensemble not built (python -m sepsis.demo_cohort --rescore)",
 )
 
 
-@pytest.fixture(scope="module")
-def client():
-    with TestClient(app) as c:
+@pytest.fixture(scope="module", params=["ensemble", "lgbm"])
+def client(request):
+    with TestClient(create_app(Settings(model_kind=request.param))) as c:
+        c.kind = request.param
         yield c
 
 
 @pytest.fixture(scope="module")
 def demo():
     patients = pd.read_csv(settings.demo_dir / "demo_patients.csv")
-    preds = pd.read_parquet(settings.demo_dir / "demo_predictions.parquet")
+    preds = {
+        "ensemble": pd.read_parquet(settings.demo_dir / "demo_predictions.parquet"),
+        "lgbm": pd.read_parquet(settings.demo_dir / "demo_predictions_lgbm.parquet"),
+    }
     rows = pd.read_parquet(settings.demo_dir / "demo_rows.parquet")
     return patients, preds, rows
+
+
+def expected_policy(kind: str) -> dict:
+    if kind == "ensemble":
+        with open(settings.ensemble_dir / "ensemble.json") as f:
+            return json.load(f)["policy"]
+    with open(settings.model_dir / "policy.json") as f:
+        return json.load(f)
 
 
 def test_health(client):
     r = client.get("/api/health")
     assert r.status_code == 200
-    assert r.json()["status"] == "ok"
-    assert r.json()["model_version"].startswith("lgbm-final-303r")
+    body = r.json()
+    assert body["status"] == "ok"
+    assert body["model_kind"] == client.kind
+    assert "lgbm-final-303r" in body["model_version"]
+    assert body["model_version"].startswith("ensemble-" if client.kind == "ensemble" else "lgbm-")
 
 
 def test_config_matches_policy(client):
     cfg = client.get("/api/config").json()
-    assert cfg["threshold"] == pytest.approx(0.03)
-    assert (cfg["k"], cfg["sticky"]) == (1, 0)
+    policy = expected_policy(client.kind)
+    assert cfg["threshold"] == pytest.approx(policy["threshold"])
+    assert (cfg["k"], cfg["sticky"]) == (policy["k"], policy["sticky"])
     assert cfg["n_patients"] == 24
+    assert cfg["model_kind"] == client.kind
+    assert "LightGBM" in cfg["reasons_source"]
+    assert (cfg["weight_lgbm"] is None) == (client.kind == "lgbm")
     assert "Not a medical device" in cfg["disclaimer"]
+
+
+def test_lgbm_policy_is_frozen():
+    policy = expected_policy("lgbm")
+    assert {k: policy[k] for k in POLICY_KEYS} == FROZEN_POLICY
 
 
 def test_demo_cohort_composition(demo):
@@ -56,6 +86,8 @@ def test_demo_cohort_composition(demo):
         "nonseptic_quiet": 10,
         "nonseptic_false_alert": 4,
     }
+    assert set(patients["outcome_ensemble"]) <= OUTCOMES
+    assert (patients["septic"] == 1).sum() == 10
     assert patients["stay_hours"].between(24, 96).all()
     assert list(patients["display_name"]) == [f"Bed {i:02d}" for i in range(1, 25)]
 
@@ -101,8 +133,10 @@ def test_patient_view_and_truth(client, demo):
     assert len(hidden["risk"]) == len(hidden["alert"]) == len(hidden["vitals"]["HR"]) == 11
     assert len(hidden["reasons"]) <= 5
     shown = client.get(f"/api/patients/{pid}", params={"t": 10, "show_truth": True}).json()
-    t_sep = int(patients.set_index("patient_id").loc[pid, "t_sepsis"])
-    assert shown["onset_hour"] == t_sep
+    row = patients.set_index("patient_id").loc[pid]
+    assert shown["onset_hour"] == int(row["t_sepsis"])
+    col = "outcome_ensemble" if client.kind == "ensemble" else "outcome"
+    assert shown["outcome"] == row[col]
 
 
 def test_patient_404_and_422(client):
@@ -120,7 +154,7 @@ def test_threshold_changes_alerts(client):
 
 
 def test_predict_consistency(client, demo):
-    """POST /api/predict on a demo patient's raw rows reproduces stored risks."""
+    """POST /api/predict on a demo patient's raw rows reproduces the stored risks."""
     _, preds, rows = demo
     pid = rows["patient_id"].iloc[0]
     prow = rows[rows["patient_id"] == pid].sort_values("hour")
@@ -134,10 +168,13 @@ def test_predict_consistency(client, demo):
     r = client.post("/api/predict", json={"rows": payload})
     assert r.status_code == 200
     out = r.json()
-    expected = preds[preds["patient_id"] == pid].sort_values("hour")
+    assert out["model_kind"] == client.kind
+    expected = preds[client.kind]
+    expected = expected[expected["patient_id"] == pid].sort_values("hour")
     assert np.abs(np.array(out["risk"]) - expected["risk"].to_numpy()).max() < 1e-6
     assert out["alert"] == [bool(a) for a in expected["alert"]]
     assert len(out["reasons_last_hour"]) <= 5
+    assert "LightGBM" in out["reasons_source"]
 
 
 def test_predict_rejects_bad_body(client):
@@ -147,16 +184,32 @@ def test_predict_rejects_bad_body(client):
 
 def test_metrics_are_frozen_values(client):
     m = client.get("/api/metrics").json()
-    test = {r["metric"]: r["value"] for r in m["test_metrics"]}
+    assert m["active_model"] == client.kind
+    lockbox = m["lockbox_test"]
+    assert lockbox["label"] == "Lockbox test (LightGBM)"
+    test = {r["metric"]: r["value"] for r in lockbox["metrics"]}
     assert test["utility_norm"] == pytest.approx(0.42695526542981604)
     assert test["auroc"] == pytest.approx(0.8475067174931725)
-    assert len(m["baselines"]) == 4
+    assert len(lockbox["baselines"]) == 4
+    assert lockbox["policy"]["threshold"] == pytest.approx(0.03)
     assert len(m["cross_hospital"]) == 16
-    assert m["policy"]["threshold"] == pytest.approx(0.03)
+    assert m["policy"]["threshold"] == pytest.approx(expected_policy(client.kind)["threshold"])
+
+
+def test_metrics_dev_cv_section(client):
+    dev = client.get("/api/metrics").json()["dev_cv"]
+    assert dev["label"] == "Development comparison (nested 5-fold CV)"
+    table = pd.read_csv(settings.tables_dir / "ensemble_dev_comparison.csv")
+    nested = table[(table["model"] == "lgbm") & (table["scheme"] == "nested")].iloc[0]
+    row = next(r for r in dev["comparison"] if r["model"] == "lgbm" and r["scheme"] == "nested")
+    assert row["utility_norm"] == pytest.approx(nested["utility_norm"])
+    assert {r["weight_lgbm"] for r in dev["weights"]} == {0.5, 0.6, 0.7, 0.8, 0.9}
+    assert len(dev["final"]) == 2 and dev["bootstrap"]
 
 
 def test_model_card(client):
     card = client.get("/api/model-card").json()
+    assert card["model_kind"] == client.kind
     assert "Intended use" in card["sections"]
     assert "0.4270" in card["markdown"]
 

@@ -19,3 +19,7 @@ httpx==0.27.2
 pytest==8.3.3
 ruff==0.6.9
 jupyter==1.1.1
+# GRU training/inference (P6, P9). Training used the CUDA 12.4 build:
+#   pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+# The API image installs the CPU-only build (see backend/requirements.txt).
+torch==2.6.0

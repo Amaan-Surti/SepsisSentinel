@@ -1,10 +1,15 @@
-"""SepsisService: loads frozen artifacts and the demo cohort once, answers API queries."""
+"""SepsisService: loads the served model and the demo cohort once, answers API queries.
+
+MODEL_KIND=ensemble serves LightGBM + GRU (weight and policy from ensemble.json);
+MODEL_KIND=lgbm serves the frozen LightGBM alone. SHAP reasons always come from LightGBM.
+"""
 
 import hashlib
 import json
 import logging
 import math
 import re
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -15,12 +20,22 @@ from sepsis.config import load_config
 from sepsis.inference import (
     alerts_for,
     load_artifacts,
+    load_ensemble,
     prepare_raw_rows,
     reasons_for,
     score_clean_rows,
+    score_clean_rows_ensemble,
 )
 
 logger = logging.getLogger(__name__)
+
+MODEL_LABELS = {"ensemble": "LightGBM + GRU ensemble", "lgbm": "LightGBM"}
+REASONS_SOURCE = {
+    "ensemble": "LightGBM component of the ensemble (SHAP)",
+    "lgbm": "LightGBM (SHAP)",
+}
+LOCKBOX_LABEL = "Lockbox test (LightGBM)"
+DEV_CV_LABEL = "Development comparison (nested 5-fold CV)"
 
 VITALS_SHOWN = ["HR", "MAP", "SBP", "Resp", "Temp", "O2Sat"]
 LABS_SHOWN = ["Lactate", "WBC", "Creatinine", "Platelets"]
@@ -39,6 +54,11 @@ def _none(x: Any) -> Optional[float]:
     return float(x)
 
 
+def _digest(path: Path) -> str:
+    """First 8 hex digits of a file's SHA-256 (version tag)."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()[:8]
+
+
 def _records(df: pd.DataFrame) -> List[Dict[str, Any]]:
     """DataFrame -> JSON-safe list of dicts (NaN -> None)."""
     return [
@@ -52,17 +72,34 @@ class SepsisService:
 
     def __init__(self, settings: Settings):
         self.settings = settings
+        self.kind = settings.model_kind
         self.cfg = load_config(settings.config_path)
         self.art = load_artifacts(settings.model_dir, with_explainer=True)
-        self.policy = self.art.policy
-        digest = hashlib.sha256((settings.model_dir / "lgbm.txt").read_bytes()).hexdigest()[:8]
-        self.model_version = f"lgbm-final-{self.art.params['num_boost_round']}r-{digest}"
+        self.lgbm_version = (
+            f"lgbm-final-{self.art.params['num_boost_round']}r-"
+            f"{_digest(settings.model_dir / 'lgbm.txt')}"
+        )
+        self.ens = None
+        if self.kind == "ensemble":
+            self.ens = load_ensemble(settings.ensemble_dir)
+            self.policy = self.ens.policy
+            self.model_version = (
+                f"ensemble-w{self.ens.weight:.1f}-{self.lgbm_version}"
+                f"+gru-{_digest(settings.ensemble_dir / 'gru.pt')}"
+            )
+            preds_file, suffix = "demo_predictions.parquet", "_ensemble"
+        else:
+            self.policy = self.art.policy
+            self.model_version = self.lgbm_version
+            preds_file, suffix = "demo_predictions_lgbm.parquet", ""
 
         demo = settings.demo_dir
         self.rows = pd.read_parquet(demo / "demo_rows.parquet").sort_values(["patient_id", "hour"])
-        self.preds = pd.read_parquet(demo / "demo_predictions.parquet")
+        self.preds = pd.read_parquet(demo / preds_file)
         self.preds = self.preds.sort_values(["patient_id", "hour"]).reset_index(drop=True)
         self.patients = pd.read_csv(demo / "demo_patients.csv", dtype={"patient_id": str})
+        # Outcome labels follow the served model's own alerts (same rules for both)
+        self.patients["outcome"] = self.patients[f"outcome{suffix}"]
         self.patients = self.patients.set_index("patient_id", drop=False)
         self.max_hour = int(self.patients["stay_hours"].max()) - 1
 
@@ -122,6 +159,9 @@ class SepsisService:
         }
 
     # ------------------------------------------------------------------ public API
+    def health(self) -> Dict[str, Any]:
+        return {"status": "ok", "model_kind": self.kind, "model_version": self.model_version}
+
     def config(self) -> Dict[str, Any]:
         return {
             "threshold": self.threshold,
@@ -129,7 +169,11 @@ class SepsisService:
             "sticky": int(self.policy["sticky"]),
             "max_hour": self.max_hour,
             "n_patients": len(self.patients),
+            "model_kind": self.kind,
+            "model_label": MODEL_LABELS[self.kind],
             "model_version": self.model_version,
+            "weight_lgbm": self.ens.weight if self.ens is not None else None,
+            "reasons_source": REASONS_SOURCE[self.kind],
             "disclaimer": DISCLAIMER,
         }
 
@@ -198,29 +242,68 @@ class SepsisService:
         if raw["hour"].duplicated().any():
             raise ValueError("Duplicate hour values in rows")
         clean_df = prepare_raw_rows(raw)
-        feats, scores = score_clean_rows(clean_df, self.art, self.cfg)
+        if self.ens is not None:
+            feats, scores = score_clean_rows_ensemble(clean_df, self.art, self.ens, self.cfg)
+        else:
+            feats, scores = score_clean_rows(clean_df, self.art, self.cfg)
         alerts = alerts_for(scores, self.policy, self.threshold)
         reasons = reasons_for(feats.iloc[[-1]], self.art, top_n=5)[0]
         return {
+            "model_kind": self.kind,
             "hours": scores["hour"].astype(int).tolist(),
             "risk": [float(r) for r in scores["risk"]],
             "alert": [bool(a) for a in alerts],
             "reasons_last_hour": reasons,
+            "reasons_source": REASONS_SOURCE[self.kind],
         }
 
     def metrics(self) -> Dict[str, Any]:
-        """Frozen result tables (never recomputed)."""
+        """Result tables written by the pipeline (never recomputed here).
+
+        lockbox_test: the frozen LightGBM, evaluated once on the 8,068 lockbox patients.
+        dev_cv: LightGBM vs GRU vs ensemble on development data, nested 5-fold CV. The
+        two sections are separate on purpose: their numbers are not comparable.
+        """
         td = self.settings.tables_dir
 
         def table(name: str) -> List[Dict[str, Any]]:
             return _records(pd.read_csv(td / name))
 
+        dev_cv = None
+        dev_files = ("comparison.csv", "weights.csv", "bootstrap.csv", "final.csv",
+                     "selection.json")
+        if all((td / f"ensemble_dev_{f}").exists() for f in dev_files):
+            with open(td / "ensemble_dev_selection.json") as f:
+                selection = json.load(f)
+            dev_cv = {
+                "label": DEV_CV_LABEL,
+                "note": (
+                    "Development data only (32,268 patients): calibration, blend weight and "
+                    "policy for each fold were fit on the other 4 folds. Not lockbox numbers."
+                ),
+                "comparison": table("ensemble_dev_comparison.csv"),
+                "weights": table("ensemble_dev_weights.csv"),
+                "bootstrap": table("ensemble_dev_bootstrap.csv"),
+                "final": table("ensemble_dev_final.csv"),
+                "selection": selection,
+            }
         return {
-            "test_metrics": table("final_test_metrics.csv"),
-            "baselines": table("final_test_baselines.csv"),
+            "active_model": self.kind,
+            "lockbox_test": {
+                "label": LOCKBOX_LABEL,
+                "model": "LightGBM (models/final, frozen)",
+                "note": (
+                    "8,068 held-out patients, evaluated once (P5.T6). This result belongs to "
+                    "the LightGBM model alone; the ensemble has not been measured on it."
+                ),
+                "metrics": table("final_test_metrics.csv"),
+                "baselines": table("final_test_baselines.csv"),
+                "subgroups": table("final_test_subgroups.csv"),
+                "policy": self.art.policy,
+            },
+            "dev_cv": dev_cv,
             "cross_hospital": table("cross_hospital.csv"),
             "ablations": table("ablations.csv"),
-            "subgroups": table("final_test_subgroups.csv"),
             "dev_oof": table("lgbm_dev_oof.csv"),
             "threshold_curve": self.art.threshold_curve,
             "policy": self.policy,
@@ -236,6 +319,7 @@ class SepsisService:
             sections[head.strip()] = body.strip()
         return {
             "title": title_match.group(1).strip() if title_match else "Model card",
+            "model_kind": self.kind,
             "model_version": self.model_version,
             "markdown": md,
             "sections": sections,
