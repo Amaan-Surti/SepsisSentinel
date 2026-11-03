@@ -16,7 +16,11 @@ models/*
 # Frozen final model (4 MB) is tracked for the API/Docker
 !models/final/
 !models/final/**
+# Dev-only LightGBM + GRU ensemble served by the API (P9)
+!models/ensemble_final/
+!models/ensemble_final/**
 mlruns/
+logs/
 
 # Python cache and checkpoints
 __pycache__/
