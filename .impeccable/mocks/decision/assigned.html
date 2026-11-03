@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Gallery Label — SepsisSentinel</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;500;700;800&family=Atkinson+Hyperlegible+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{font-family:"Atkinson Hyperlegible Next",Arial,sans-serif;background:#203E3A;color:#E6EEEB}
+.note{background:#152B28;color:#C9D6D2;font-size:14px;padding:6px 32px}.note b{color:#fff}
+.top{display:flex;align-items:center;gap:28px;padding:14px 32px;border-bottom:1px solid #2F534E}
+.brand{font-weight:800;font-size:22px;color:#fff}.badge{border:1.5px solid #8FB3AB;color:#CFE2DD;border-radius:999px;padding:2px 12px;font-size:14px;font-weight:700}
+.nav{display:flex;gap:6px;margin-left:12px}.nav span{padding:8px 14px;border-radius:8px;font-size:17px;color:#B8CBC6}.nav .on{background:#2D5550;color:#fff;font-weight:700}
+.clock{margin-left:auto;display:flex;align-items:baseline;gap:8px}.clock small{font-size:14px;color:#A9C1BB}.clock b{font-size:34px;font-weight:800;color:#fff}.clock i{font-style:normal;color:#A9C1BB;font-size:18px}
+.btn{border:1.5px solid #4F7A73;border-radius:8px;padding:8px 14px;font-size:16px;color:#E6EEEB}.play{background:#F2C14E;border-color:#F2C14E;color:#1B1A10;font-weight:800}
+.thr{font-size:15px;color:#B8CBC6}.thr b{color:#fff;font-size:18px}
+main{display:grid;grid-template-columns:380px 1fr;gap:28px;padding:24px 32px 0;height:700px}
+.wall h2{font-size:15px;color:#A9C1BB;font-weight:700;margin-bottom:12px}
+.ex{display:grid;grid-template-columns:54px 1fr auto;align-items:center;gap:12px;padding:9px 12px;border-radius:10px;color:#9FB6B0}
+.ex .n{font-size:28px;font-weight:800;color:#C7D8D3}.ex .w{font-size:17px}.ex .r{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
+.ex.focus{background:#F8F8F4;color:#131918}.ex.focus .n{color:#131918}
+.s{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:15px}
+.tri{width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:12px solid #C8452C}
+.dot{width:11px;height:11px;border-radius:50%;background:#E0B341}.bar{width:13px;height:3px;background:#9FB6B0}
+.label{background:#F8F8F4;color:#131918;border-radius:14px;padding:30px 36px;display:grid;grid-template-columns:1fr 360px;gap:32px}
+.big{font-size:96px;line-height:.9;font-weight:800;letter-spacing:-.02em}
+.tomb{font-size:22px;line-height:1.35;margin-top:10px}.tomb b{font-weight:800}
+.meta{font-family:"Atkinson Hyperlegible Mono",monospace;font-size:14px;color:#56625F;margin-top:6px}
+.chart{margin-top:22px}.reveal{grid-column:1/-1;border-top:2px solid #131918;padding-top:14px;font-size:22px}
+.reveal b{font-weight:800}.reveal .k{font-size:15px;color:#56625F;font-weight:700;margin-right:14px}
+.why h3{font-size:22px;font-weight:800;margin-bottom:4px}.why p{font-size:15px;color:#56625F;margin-bottom:12px}
+.why li{list-style:none;padding:10px 0;border-bottom:1px solid #DADDD6;font-size:19px;font-weight:700}
+.why li span{display:block;font-family:"Atkinson Hyperlegible Mono",monospace;font-size:13px;font-weight:400;color:#56625F;margin-top:3px}
+.chip{display:inline-flex;align-items:center;gap:8px;background:#FBE4DC;color:#9C3218;border-radius:999px;padding:6px 16px;font-weight:800;font-size:18px}
+.tour{position:absolute;left:440px;right:32px;bottom:20px;display:flex;gap:10px;align-items:center}
+.tour .t{font-size:15px;color:#A9C1BB;font-weight:700;margin-right:6px}
+.stop{display:flex;align-items:center;gap:10px;border:1.5px solid #3D6560;border-radius:999px;padding:6px 16px 6px 6px;font-size:16px;color:#CFE0DB}
+.stop i{font-style:normal;width:30px;height:30px;border-radius:50%;background:#2D5550;display:grid;place-items:center;font-weight:800;color:#fff}
+.stop.now{background:#F2C14E;color:#1B1A10;border-color:#F2C14E;font-weight:700}.stop.now i{background:#1B1A10;color:#F2C14E}
+</style></head><body>
+<div class="note"><b>Decision support on retrospective data. Not a medical device.</b> 24 de-identified ICU stays from a held-out test set, replayed hour by hour.</div>
+<div class="top">
+  <span class="brand">SepsisSentinel</span><span class="badge">Ensemble</span>
+  <div class="nav"><span class="on">Ward</span><span>Tour</span><span>Evidence</span></div>
+  <div class="clock"><small>ICU hour</small><b>30</b><i>/ 69</i></div>
+  <span class="btn">Reset</span><span class="btn">‹ 1 h</span><span class="btn play">▶ Play</span><span class="btn">1 h ›</span>
+  <span class="thr">Alert threshold <b>3.0%</b></span><span class="btn">Ground truth: on</span>
+</div>
+<main>
+  <section class="wall">
+    <h2>The ward · 20 of 24 beds occupied · highest risk first</h2>
+    <div class="ex focus"><span class="n">16</span><span class="w"><span class="s"><span class="tri"></span>Alert · 3 h</span></span><span class="r">4.14%</span></div>
+    <div class="ex"><span class="n">24</span><span class="w"><span class="s"><span class="dot"></span>Watch</span></span><span class="r">1.98%</span></div>
+    <div class="ex"><span class="n">20</span><span class="w"><span class="s"><span class="bar"></span>OK</span></span><span class="r">1.45%</span></div>
+    <div class="ex"><span class="n">01</span><span class="w"><span class="s"><span class="bar"></span>OK</span></span><span class="r">1.29%</span></div>
+    <div class="ex"><span class="n">06</span><span class="w"><span class="s"><span class="bar"></span>OK</span></span><span class="r">1.17%</span></div>
+    <div class="ex"><span class="n">08</span><span class="w"><span class="s"><span class="bar"></span>OK</span></span><span class="r">1.12%</span></div>
+    <div class="ex"><span class="n">02</span><span class="w"><span class="s"><span class="bar"></span>OK</span></span><span class="r">0.85%</span></div>
+    <div class="ex"><span class="n">15</span><span class="w"><span class="s"><span class="bar"></span>OK</span></span><span class="r">0.79%</span></div>
+    <div class="ex"><span class="n">17</span><span class="w"><span class="s"><span class="bar"></span>OK</span></span><span class="r">0.65%</span></div>
+    <div class="ex"><span class="n">19</span><span class="w"><span class="s"><span class="bar"></span>OK</span></span><span class="r">0.62%</span></div>
+  </section>
+  <section class="label">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div class="big">Bed 16</div><span class="chip"><span class="tri"></span>Alert</span>
+      </div>
+      <p class="tomb">Woman, 74 · Surgical ICU · hour <b>30</b> of 45<br>Calibrated risk now <b>4.14%</b> · first alert at hour <b>28</b></p>
+      <p class="meta">EXHIBIT 16 · LOCKBOX TEST PATIENT p119674 · LIGHTGBM + GRU ENSEMBLE</p>
+      <svg class="chart" width="660" height="250" viewBox="0 0 660 250">
+        <rect x="560" y="10" width="20" height="200" fill="#C8452C" opacity=".2"/>
+        <line x1="40" y1="128" x2="650" y2="128" stroke="#9C3218" stroke-width="2.5" stroke-dasharray="8 5"/>
+        <text x="44" y="120" font-size="16" fill="#9C3218" font-weight="700">Alert threshold 3.0%</text>
+        <polyline fill="none" stroke="#203E3A" stroke-width="4" points="40,170 60,195 120,196 200,198 280,199 360,197 420,200 470,198 500,190 530,185 548,170 562,96 580,96 598,98"/>
+        <line x1="40" y1="210" x2="650" y2="210" stroke="#131918" stroke-width="1.5"/>
+        <line x1="870" y1="0" x2="870" y2="0"/>
+        <line x1="648" y1="10" x2="648" y2="210" stroke="#131918" stroke-width="3"/>
+        <text x="600" y="26" font-size="16" font-weight="800" fill="#131918">Onset h42</text>
+        <text x="40" y="236" font-size="15" fill="#56625F">0</text><text x="330" y="236" font-size="15" fill="#56625F">ICU hour 20</text><text x="600" y="236" font-size="15" fill="#56625F">45</text>
+      </svg>
+    </div>
+    <aside class="why">
+      <h3>What the model saw</h3><p>Factors raising the risk most at hour 30 (LightGBM part of the ensemble)</p>
+      <ul>
+        <li>Lactate last measured 2 h ago<span>Lactate__tsl · SHAP +0.417</span></li>
+        <li>Temperature 38.2 °C<span>Temp · SHAP +0.284</span></li>
+        <li>Temperature max over 6 h: 38.2<span>Temp__max_6h · SHAP +0.171</span></li>
+        <li>PaCO2 last measured 2 h ago<span>PaCO2__tsl · SHAP +0.131</span></li>
+      </ul>
+    </aside>
+    <p class="reveal"><span class="k">WHAT HAPPENED</span>Sepsis onset at ICU hour <b>42</b>: the first alert came <b>14 h</b> before it.</p>
+  </section>
+</main>
+<div class="tour"><span class="t">Tour</span>
+  <span class="stop"><i>1</i>A false alarm</span><span class="stop"><i>2</i>Caught early</span><span class="stop now"><i>3</i>Caught, but noisy</span><span class="stop"><i>4</i>Missed</span><span class="stop"><i>5</i>The threshold</span><span class="stop"><i>6</i>The evidence</span>
+</div>
+</body></html>

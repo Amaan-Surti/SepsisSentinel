@@ -58,6 +58,9 @@ export interface PatientDetail {
   risk: number[];
   alert: boolean[];
   reasons: Reason[];
+  reasons_by_hour: Reason[][];
+  risk_components: { lgbm: number[]; gru: number[] } | null;
+  hosp_adm_time: number | null;
   onset_hour?: number | null;
   septic?: boolean | null;
   outcome?: string | null;

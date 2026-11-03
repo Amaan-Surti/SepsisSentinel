@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 from backend.app.main import create_app
 from backend.app.settings import Settings, get_settings
-from sepsis.constants import RAW_COLUMNS
+from sepsis.constants import LABS, RAW_COLUMNS, VITALS
 
 settings = get_settings()
 POLICY_KEYS = ("threshold", "k", "sticky")
@@ -137,6 +137,27 @@ def test_patient_view_and_truth(client, demo):
     assert shown["onset_hour"] == int(row["t_sepsis"])
     col = "outcome_ensemble" if client.kind == "ensemble" else "outcome"
     assert shown["outcome"] == row[col]
+
+
+def test_patient_view_has_every_measurement_and_hourly_insights(client, demo):
+    patients, preds, rows = demo
+    pid = patients.loc[patients["outcome"] == "septic_early", "patient_id"].iloc[0]
+    view = client.get(f"/api/patients/{pid}", params={"t": 12}).json()
+    assert set(view["vitals"]) == set(VITALS) and set(view["labs"]) == set(LABS)
+    assert all(len(v) == 13 for v in [*view["vitals"].values(), *view["labs"].values()])
+    assert len(view["reasons_by_hour"]) == 13 and view["reasons_by_hour"][-1] == view["reasons"]
+    stored = preds[client.kind]
+    stored = stored[stored["patient_id"] == pid].sort_values("hour")
+    assert view["reasons_by_hour"][5] == json.loads(stored["top_reasons_json"].iloc[5])
+    raw = rows[rows["patient_id"] == pid].sort_values("hour")
+    hr = [None if math.isnan(x) else x for x in raw["HR"].head(13)]
+    assert view["vitals"]["HR"] == pytest.approx(hr, nan_ok=True)
+    if client.kind == "ensemble":
+        comp = view["risk_components"]
+        assert len(comp["lgbm"]) == len(comp["gru"]) == 13
+        assert comp["lgbm"] == pytest.approx(stored["risk_lgbm"].head(13).tolist())
+    else:
+        assert view["risk_components"] is None
 
 
 def test_patient_404_and_422(client):

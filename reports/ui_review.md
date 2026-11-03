@@ -1,7 +1,7 @@
 # UI review — impeccable critique + audit (P9, 2026-11-03)
 
 Target: the P7 dashboard (master, Docker image 1.0) at 1280×720 and 1440×900, Ward / Patient (Bed 16, hour 30, ground truth on) / Model.
-Method: impeccable `critique` with two isolated sub-agents (A: design review; B: detector + browser evidence) and a separate `audit` sub-agent. Before/after screenshots: `reports/screenshots/before/*.jpg` and `reports/screenshots/*.jpg` (captured with `reports/screenshots/capture.py`, headless Chrome over CDP).
+Method: impeccable `critique` with two isolated sub-agents (A: design review; B: detector + browser evidence) and a separate `audit` sub-agent. Before/after screenshots: `reports/screenshots/before/*.jpg` and `reports/screenshots/p9/*.jpg` (the P9 after state; `reports/screenshots/*.jpg` now show the Gallery Label redesign below) (captured with `reports/screenshots/capture.py`, headless Chrome over CDP).
 
 Goal from the brief: a calmer, clearer clinical dashboard that a class can read from a projector — every number unchanged and traceable to the API, status never by colour alone, the disclaimer on every page, usable at 1280×720 and 1440×900, keyboard accessible, WCAG AA.
 
@@ -35,3 +35,18 @@ Audit: accessibility 2, performance 3, theming 2, responsive 2, integrity 3.
 | 13 | Model page figures loaded eagerly at full size (audit P2-7) | P3 | `loading="lazy"` with intrinsic width/height; context value memoised |
 
 Not changed, on purpose: the threshold slider keeps its 0.01–0.50 range (the policy τ = 0.03 lies below the plan's 0.05 minimum; recorded in STATUS.md since P7); fonts still load from Google Fonts (self-hosting would mean downloading font files — left as a follow-up); the light theme stays (projector use).
+
+---
+
+# Redesign: Gallery Label (2026-11-03, branch `feature/ui-redesign`)
+
+After the P9 refinements the author asked for "a completely new better UI", to be shown live on his laptop at an exhibition, with **every** feature and every detail: all vitals and all labs for every hour, and an insight for every hour. Run through impeccable's new-work flow:
+
+1. **Product truth:** `PRODUCT.md` written from a short interview (exhibition booth, visitors arrive mid-story, structure may change, must not look like a startup SaaS product).
+2. **Direction round:** seven candidate worlds from the visitors' world (observation chart, weather forecast, Swiss pharma information design, hospital wayfinding, museum exhibit labels, journal visual abstract, departure board); the concept-seed roll assigned **museum exhibit labels**; four catalogue challengers were declined and two kept as alternates. Five sketches were shown on the decision page; the author picked the assigned **Gallery Label** sketch. Contract: `.impeccable/surfaces/frontend-src-main-tsx.md` (seed `seed:1cb1bf224b161401`).
+3. **Build (code-led):** ward wall, bed label with *Label / Every measurement / Hour by hour* tabs (all 34 measurements; per-hour risk, LightGBM and GRU parts, status, measurements and reasons), six-stop tour, evidence rooms. API extended: `/api/patients/{id}` now returns all 8 vitals and 26 labs, `reasons_by_hour`, `risk_components` and `hosp_adm_time`.
+4. **Finish review** (fresh agent following impeccable's finish-reviewer procedure; the shipped reviewer agent type is not available in this harness): disposition **fix** with eight material findings. Round 1 resolved five (status clipped at 1280, "now" painted in the Watch colour, invisible flowsheet group headings, nested flowsheet scroll, vital tiles wrapping); round 2 resolved the reveal below the fold at 1280×720, the undersized calibration figure and a tombstone-orphan regression. One capture was rejected as invalid (lazy image not loaded) and recaptured.
+5. **Open:** fonts still load from Google Fonts; self-hosting them (for an offline exhibition laptop) needs the owner's approval to download the font files. Until then the page falls back to Arial without internet.
+6. **Detector:** `impeccable detect` 0 findings. `DESIGN.md` + `.impeccable/design.json` record the built world.
+
+Screenshots: `reports/screenshots/{ward,patient,measurements,hours,tour,model,model_full}.jpg` (Gallery Label); `reports/screenshots/p9/` (the refined P9 UI); `reports/screenshots/before/` (P7).

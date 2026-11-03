@@ -17,6 +17,7 @@ import pandas as pd
 
 from backend.app.settings import DISCLAIMER, Settings
 from sepsis.config import load_config
+from sepsis.constants import LABS, VITALS
 from sepsis.inference import (
     alerts_for,
     load_artifacts,
@@ -37,9 +38,9 @@ REASONS_SOURCE = {
 LOCKBOX_LABEL = "Lockbox test (LightGBM)"
 DEV_CV_LABEL = "Development comparison (nested 5-fold CV)"
 
-VITALS_SHOWN = ["HR", "MAP", "SBP", "Resp", "Temp", "O2Sat"]
-LABS_SHOWN = ["Lactate", "WBC", "Creatinine", "Platelets"]
-WARD_VITALS = ["HR", "MAP", "Temp", "Resp", "WBC"]
+VITALS_SHOWN = list(VITALS)  # all 8 hourly vitals
+LABS_SHOWN = list(LABS)  # all 26 labs
+WARD_VITALS = ["HR", "MAP", "Temp", "Resp", "O2Sat", "WBC"]
 TREND_HOURS = 12
 
 
@@ -107,6 +108,10 @@ class SepsisService:
             p: g.reset_index(drop=True) for p, g in self.rows.groupby("patient_id")
         }
         self._pred_idx = {p: g.index.to_numpy() for p, g in self.preds.groupby("patient_id")}
+        self._reasons_by_pid = {
+            p: [json.loads(x) for x in self.preds["top_reasons_json"].to_numpy()[i]]
+            for p, i in self._pred_idx.items()
+        }
         self._alert_cache: Dict[float, np.ndarray] = {}
         logger.info("Service ready: %s, %d demo beds", self.model_version, len(self.patients))
 
@@ -214,7 +219,14 @@ class SepsisService:
         s = self._patient_state(pid, t, tau)
         p, h = s["p"], s["h"]
         rows = self._rows_by_pid[pid].iloc[: h + 1]
-        reasons = json.loads(self.preds.loc[self._pred_idx[pid][h], "top_reasons_json"])
+        idx = self._pred_idx[pid][: h + 1]
+        reasons_by_hour = self._reasons_by_pid[pid][: h + 1]
+        components = None
+        if {"risk_lgbm", "risk_gru"} <= set(self.preds.columns):
+            components = {
+                "lgbm": [float(r) for r in self.preds["risk_lgbm"].to_numpy()[idx]],
+                "gru": [float(r) for r in self.preds["risk_gru"].to_numpy()[idx]],
+            }
         out = {
             **self._base_fields(p),
             "stay_hours": int(p["stay_hours"]),
@@ -228,7 +240,10 @@ class SepsisService:
             "labs": {v: [_none(x) for x in rows[v]] for v in LABS_SHOWN},
             "risk": [float(r) for r in s["risk"][: h + 1]],
             "alert": [bool(a) for a in s["alert"][: h + 1]],
-            "reasons": reasons,
+            "reasons": reasons_by_hour[h],
+            "reasons_by_hour": reasons_by_hour,
+            "risk_components": components,
+            "hosp_adm_time": _none(rows["HospAdmTime"].iloc[0]),
         }
         if show_truth:
             out["septic"] = bool(p["septic"])

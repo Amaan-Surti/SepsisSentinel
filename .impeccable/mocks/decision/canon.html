@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Category standard — SepsisSentinel</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{font-family:"Atkinson Hyperlegible Next",Arial,sans-serif;background:#F3F5F7;color:#0F172A;display:grid;grid-template-columns:240px 1fr}
+aside{background:#0F172A;color:#CBD5E1;padding:22px 18px}aside b{color:#fff;font-size:20px;display:block;margin-bottom:28px}
+aside span{display:block;padding:10px 12px;border-radius:8px;font-size:16px;margin-bottom:4px}aside .on{background:#1E293B;color:#fff}
+main{padding:0 28px}
+.note{background:#E2E8F0;color:#334155;font-size:14px;padding:6px 14px;margin:0 -28px 0}
+.top{display:flex;align-items:center;gap:16px;padding:16px 0}.top h1{font-size:26px}
+.ctl{margin-left:auto;display:flex;gap:8px}.btn{background:#fff;border:1px solid #CBD5E1;border-radius:8px;padding:8px 14px;font-size:15px}.pri{background:#2563EB;color:#fff;border-color:#2563EB}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.k{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:16px}.k span{font-size:14px;color:#64748B}.k b{display:block;font-size:30px;margin-top:6px}
+.two{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-top:16px}
+.card{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:16px}
+.card h2{font-size:18px;margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:16px}th{text-align:left;color:#64748B;font-size:14px;padding:8px;border-bottom:1px solid #E2E8F0}td{padding:9px 8px;border-bottom:1px solid #F1F5F9}
+.p{display:inline-block;padding:2px 10px;border-radius:999px;font-size:14px;font-weight:700}.al{background:#FEE2E2;color:#B91C1C}.wa{background:#FEF3C7;color:#92400E}.ok{background:#F1F5F9;color:#475569}
+</style></head><body>
+<aside><b>SepsisSentinel</b><span class="on">Ward</span><span>Patients</span><span>Model performance</span><span>Model card</span></aside>
+<main>
+<div class="note"><b>Decision support on retrospective data. Not a medical device.</b></div>
+<div class="top"><h1>ICU ward · hour 30</h1><div class="ctl"><span class="btn">‹ 1 h</span><span class="btn pri">▶ Play</span><span class="btn">1 h ›</span><span class="btn">Threshold 3.0%</span><span class="btn">Ensemble</span></div></div>
+<div class="kpis"><div class="k"><span>Alerts</span><b>1</b></div><div class="k"><span>Watch</span><b>1</b></div><div class="k"><span>OK</span><b>18</b></div><div class="k"><span>Discharged</span><b>4</b></div></div>
+<div class="two">
+  <div class="card"><h2>Beds by calibrated risk</h2><table><tr><th>Bed</th><th>Age/sex</th><th>Risk</th><th>Status</th></tr>
+    <tr><td>Bed 16</td><td>74 F</td><td>4.14%</td><td><span class="p al">▲ Alert</span></td></tr>
+    <tr><td>Bed 24</td><td>82 F</td><td>1.98%</td><td><span class="p wa">● Watch</span></td></tr>
+    <tr><td>Bed 20</td><td>83 M</td><td>1.45%</td><td><span class="p ok">– OK</span></td></tr>
+    <tr><td>Bed 01</td><td>67 F</td><td>1.29%</td><td><span class="p ok">– OK</span></td></tr>
+    <tr><td>Bed 06</td><td>58 F</td><td>1.17%</td><td><span class="p ok">– OK</span></td></tr>
+    <tr><td>Bed 08</td><td>78 M</td><td>1.12%</td><td><span class="p ok">– OK</span></td></tr></table></div>
+  <div class="card"><h2>Bed 16 · risk trajectory</h2>
+    <svg width="560" height="260" viewBox="0 0 560 260"><line x1="30" y1="130" x2="550" y2="130" stroke="#DC2626" stroke-dasharray="6 4" stroke-width="2"/>
+    <polyline fill="none" stroke="#2563EB" stroke-width="3" points="30,180 100,205 300,208 420,204 455,190 470,90 500,92"/><line x1="545" y1="10" x2="545" y2="230" stroke="#0F172A" stroke-width="2"/></svg></div>
+</div>
+</main>
+</body></html>

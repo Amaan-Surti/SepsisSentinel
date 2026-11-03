@@ -16,6 +16,8 @@ interface ReplayState {
   threshold: number; // live slider value
   appliedThreshold: number; // debounced (200 ms) value used for fetching
   showTruth: boolean;
+  stop: number | null; // current presenter tour stop
+  setStop: (n: number | null) => void;
   setT: (t: number) => void;
   step: (d: number) => void;
   togglePlay: () => void;
@@ -52,6 +54,7 @@ export function ReplayProvider({ children }: { children: ReactNode }) {
   const [threshold, setThreshold] = useState(0.03);
   const [appliedThreshold, setApplied] = useState(0.03);
   const [showTruth, setShowTruth] = useState(init.truth);
+  const [stop, setStop] = useState<number | null>(null);
 
   useEffect(() => {
     const ctl = new AbortController();
@@ -124,6 +127,8 @@ export function ReplayProvider({ children }: { children: ReactNode }) {
       threshold,
       appliedThreshold,
       showTruth,
+      stop,
+      setStop,
       setT,
       step,
       togglePlay,
@@ -133,7 +138,7 @@ export function ReplayProvider({ children }: { children: ReactNode }) {
       setShowTruth,
       retryConfig,
     }),
-    [config, configError, t, playing, speedMs, threshold, appliedThreshold, showTruth, setT, step, togglePlay, reset, retryConfig],
+    [config, configError, t, playing, speedMs, threshold, appliedThreshold, showTruth, stop, setT, step, togglePlay, reset, retryConfig],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

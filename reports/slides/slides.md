@@ -265,7 +265,7 @@ test-set claim stays with LightGBM. The app can switch back with MODEL_KIND=lgbm
 ![bg right:55% fit](../screenshots/patient.jpg)
 
 - **FastAPI** serves the **ensemble** (default) or LightGBM (`MODEL_KIND`); GRU on CPU
-- **React + TypeScript** dashboard: model badge, replay clock, threshold slider, show-truth toggle; projector-sized after an impeccable critique/audit
+- **React + TypeScript** dashboard in a museum-gallery world: a wall of numbered beds, each opening onto an object label with all 34 measurements and an insight for every hour; tour rail of six stops
 - One code path for training and online `/api/predict` (diff < 10⁻⁶; ensemble online vs batch 4 × 10⁻⁷)
 - **Docker Compose**: API :8000 + UI :8080
 - 93 automated tests, incl. causality of the full ensemble path
@@ -287,9 +287,9 @@ LightGBM and were not reselected for the ensemble.
 
 1. Ward at hour 0 (badge: **Ensemble**) → **Play** (Space, 2×)
 2. Pause when **Bed 03** turns *Alert* (hour 16), the first septic bed to alert
-3. Open the patient → read **"Why this risk"**
+3. Bed 03 mounts on its label → read **"What the model saw"**
 4. Toggle **Show ground truth** → onset at hour 22, 6 h after the alert
-5. Show a miss (**Bed 07**), move the **threshold slider** → more / fewer alerts; Model page: lockbox band vs development band
+5. Show a miss (**Bed 07**), move the **threshold slider** → more / fewer alerts; Evidence: lockbox room vs development annex
 6. Close on the disclaimer
 
 > Fallback: 60-s screen recording in case the laptop fails.

@@ -1,13 +1,21 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useParams } from "react-router-dom";
 import { DisclaimerBanner, DisclaimerFooter } from "./components/Disclaimer";
 import { TopBar } from "./components/TopBar";
-import { ModelPage } from "./pages/ModelPage";
-import { PatientPage } from "./pages/PatientPage";
+import { TourRail } from "./components/TourRail";
+import { BedPage } from "./pages/BedPage";
+import { EvidencePage } from "./pages/EvidencePage";
+import { TourPage } from "./pages/TourPage";
 import { WardPage } from "./pages/WardPage";
 import { ReplayProvider, useReplay } from "./state/ReplayContext";
 import "./styles.css";
+
+/** Old P7–P9 links (/patient/:id) keep working. */
+function LegacyPatient() {
+  const { id = "" } = useParams();
+  return <Navigate to={`/bed/${id}`} replace />;
+}
 
 function Shell() {
   const { configError, retryConfig } = useReplay();
@@ -24,12 +32,16 @@ function Shell() {
       ) : (
         <Routes>
           <Route path="/" element={<WardPage />} />
-          <Route path="/patient/:id" element={<PatientPage />} />
-          <Route path="/model" element={<ModelPage />} />
+          <Route path="/bed/:id" element={<BedPage />} />
+          <Route path="/tour" element={<TourPage />} />
+          <Route path="/evidence" element={<EvidencePage />} />
+          <Route path="/patient/:id" element={<LegacyPatient />} />
+          <Route path="/model" element={<Navigate to="/evidence" replace />} />
           <Route path="*" element={<div className="state">Page not found.</div>} />
         </Routes>
       )}
       <DisclaimerFooter />
+      <TourRail />
     </>
   );
 }

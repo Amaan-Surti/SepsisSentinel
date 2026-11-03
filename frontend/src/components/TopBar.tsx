@@ -11,34 +11,29 @@ export function TopBar() {
   const max = r.config?.max_hour ?? 0;
   const offPolicy = r.config != null && Math.abs(r.threshold - r.config.threshold) > 1e-9;
   return (
-    <header className="topbar">
+    <header className="top">
       <div className="brand">
-        <span className="brand-mark" aria-hidden="true" />
         <span className="brand-name">SepsisSentinel</span>
         {r.config && (
-          <span
-            className={`model-badge badge-${r.config.model_kind}`}
-            title={`Served model: ${r.config.model_label} (${r.config.model_version})`}
-          >
-            <span className="visually-hidden">Served model: </span>
+          <span className="badge" title={`Served model: ${r.config.model_label} (${r.config.model_version})`}>
+            <span className="vh">Served model: </span>
             {BADGE[r.config.model_kind] ?? r.config.model_label}
           </span>
         )}
         <nav className="nav" aria-label="Pages">
-          <NavLink to="/" className={({ isActive }) => (isActive || pathname.startsWith("/patient/") ? "active" : "")} end>
+          <NavLink to="/" className={({ isActive }) => (isActive || pathname.startsWith("/bed/") ? "active" : "")} end>
             Ward
           </NavLink>
-          <NavLink to="/model">Model</NavLink>
+          <NavLink to="/tour">Tour</NavLink>
+          <NavLink to="/evidence">Evidence</NavLink>
         </nav>
       </div>
 
       <div className="controls" role="group" aria-label="Replay controls">
-        <div className="clock" aria-live="off">
+        <div className="clock">
           <span className="clock-label">ICU hour</span>
-          <span className="clock-value num-tab">
-            {r.t}
-            <span className="clock-max"> / {max}</span>
-          </span>
+          <span className="clock-value num">{r.t}</span>
+          <span className="clock-max">/ {max}</span>
         </div>
         <div className="btn-group">
           <button onClick={r.reset} title="Back to hour 0">
@@ -46,16 +41,14 @@ export function TopBar() {
             Reset
           </button>
           <button onClick={() => r.step(-1)} disabled={r.t <= 0} title="Back 1 hour (← key)" aria-label="Back 1 hour">
-            <BackIcon />
-            1 h
+            <BackIcon />1 h
           </button>
           <button className="primary play" onClick={r.togglePlay} disabled={!r.config} title="Play or pause (Space)">
             {r.playing ? <PauseIcon /> : <PlayIcon />}
             {r.playing ? "Pause" : "Play"}
           </button>
           <button onClick={() => r.step(1)} disabled={r.t >= max} title="Forward 1 hour (→ key)" aria-label="Forward 1 hour">
-            1 h
-            <ForwardIcon />
+            1 h<ForwardIcon />
           </button>
         </div>
         <label className="field">
@@ -68,10 +61,10 @@ export function TopBar() {
             ))}
           </select>
         </label>
-        <div className="field threshold">
+        <div className="field">
           <span className="threshold-head">
             <label htmlFor="threshold">Alert threshold</label>
-            <b className="num-tab">{pct(r.threshold, 1)}</b>
+            <b className="num">{pct(r.threshold, 1)}</b>
             {offPolicy && (
               <button className="link" onClick={() => r.setThreshold(r.config!.threshold)} title="Back to the policy threshold">
                 reset to policy {pct(r.config!.threshold, 1)}

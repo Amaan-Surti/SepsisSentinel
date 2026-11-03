@@ -9,26 +9,26 @@ const SOURCE_NOTE: Record<ModelKind, string> = {
 export function ReasonsPanel({ reasons, hour, kind }: { reasons: Reason[]; hour: number; kind: ModelKind }) {
   const max = Math.max(...reasons.map((r) => r.shap), 1e-9);
   return (
-    <section className="card reasons" aria-labelledby="reasons-title">
-      <h2 id="reasons-title">Why this risk</h2>
+    <section className="why" aria-labelledby="why-title">
+      <h3 id="why-title">What the model saw</h3>
       <p className="sub">Factors raising the risk most at hour {hour}</p>
-      <p className="source-note">{SOURCE_NOTE[kind]}</p>
+      <p className="source">{SOURCE_NOTE[kind]}</p>
       {reasons.length === 0 ? (
-        <p className="empty">No factor is pushing risk up at this hour.</p>
+        <p>No factor is pushing risk up at this hour.</p>
       ) : (
         <ol>
           {reasons.map((r) => (
             <li key={r.feature}>
               <RaiseIcon className="raise" size={16} />
-              <div className="reason-body">
-                <span className="reason-text">
+              <div>
+                <span className="txt">
                   {r.text}
-                  <span className="visually-hidden"> (raises risk)</span>
+                  <span className="vh"> (raises risk)</span>
                 </span>
-                <span className="reason-bar" aria-hidden="true">
+                <span className="bar" aria-hidden="true">
                   <span style={{ width: `${(r.shap / max) * 100}%` }} />
                 </span>
-                <code className="reason-feat">
+                <code>
                   {r.feature} · SHAP +{r.shap.toFixed(3)}
                 </code>
               </div>

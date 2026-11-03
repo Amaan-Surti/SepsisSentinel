@@ -66,8 +66,23 @@ def capture(
         page.js(s)
         time.sleep(0.4)
     time.sleep(1.2)  # chart animations and debounced fetches
-    params: Dict[str, Any] = {"format": "jpeg", "quality": 88}
+    params: Dict[str, Any] = (
+        {"format": "png"} if out.suffix == ".png" else {"format": "jpeg", "quality": 88}
+    )
     if full:
+        # lazy images load only near the viewport: scroll through, wait for every image, come back
+        page.js(
+            "(async () => {"
+            " document.querySelectorAll('img[loading=lazy]').forEach(i => i.loading = 'eager');"
+            " window.scrollTo(0, document.body.scrollHeight);"
+            " await new Promise(r => setTimeout(r, 400));"
+            " await Promise.all([...document.images].map(i => i.complete && i.naturalWidth ? 1 :"
+            " new Promise(r => { i.onload = i.onerror = r; setTimeout(r, 8000); })));"
+            " window.scrollTo(0, 0); })()"
+        )
+        time.sleep(0.6)
+        # a fixed bottom bar would land mid-page in a tall capture; pin it to the document end
+        page.js("document.querySelectorAll('.tour-rail').forEach(e => e.style.position = 'static')")
         h = page.js("document.documentElement.scrollHeight")
         params["clip"] = {"x": 0, "y": 0, "width": width, "height": h, "scale": 1}
         params["captureBeyondViewport"] = True
@@ -87,6 +102,8 @@ def main() -> None:
     parser.add_argument("--bed", default="Bed 16")
     parser.add_argument("--legacy", action="store_true",
                         help="Pre-P9 UI without deep links: drive the replay controls instead")
+    parser.add_argument("--p9", action="store_true", help="P9 UI (ward table + /patient page)")
+    parser.add_argument("--patient", default="p119674", help="patient_id for the bed shots")
     parser.add_argument("--suffix", default="")
     args = parser.parse_args()
     out = Path(args.out)
@@ -124,12 +141,31 @@ def main() -> None:
             capture(page, f"{args.base}/model", out / f"model{sfx}.jpg", w, h,
                     "document.querySelectorAll('table').length > 0")
             return
-        q = f"?t={args.hour}&truth=1"
-        capture(page, f"{args.base}/?t={args.hour}", out / f"ward{sfx}.jpg", w, h, rows_ready)
-        capture(page, f"{args.base}/{q}", out / f"patient{sfx}.jpg", w, h, rows_ready,
-                [bed_click])
-        capture(page, f"{args.base}/model", out / f"model{sfx}.jpg", w, h,
-                "document.querySelectorAll('table').length > 1")
+        if args.p9:
+            q = f"?t={args.hour}&truth=1"
+            capture(page, f"{args.base}/?t={args.hour}", out / f"ward{sfx}.jpg", w, h, rows_ready)
+            capture(page, f"{args.base}/{q}", out / f"patient{sfx}.jpg", w, h, rows_ready,
+                    [bed_click])
+            capture(page, f"{args.base}/model", out / f"model{sfx}.jpg", w, h,
+                    "document.querySelectorAll('table').length > 1")
+            return
+        # Gallery Label UI (deep links straight to a bed)
+        bed = f"{args.base}/bed/{args.patient}?t={args.hour}&truth=1"
+        label_ready = "!!document.querySelector('.label .bed-no')"
+        tab = "[...document.querySelectorAll('[role=tab]')].find(b => b.textContent.startsWith({}))"
+        tour_ready = "document.querySelectorAll('.tour-item').length === 6"
+        evidence_ready = "document.querySelectorAll('table').length > 3"
+        shots = [
+            (f"{args.base}/?t={args.hour}", "ward", rows_ready, [], False),
+            (bed, "patient", label_ready, [], False),
+            (bed, "measurements", label_ready, [tab.format('"Every"') + ".click()"], False),
+            (bed, "hours", label_ready, [tab.format('"Hour"') + ".click()"], False),
+            (f"{args.base}/tour", "tour", tour_ready, [], False),
+            (f"{args.base}/evidence", "model", evidence_ready, [], False),
+            (f"{args.base}/evidence", "model_full", evidence_ready, [], True),
+        ]
+        for url, name, ready, steps, full in shots:
+            capture(page, url, out / f"{name}{sfx}.jpg", w, h, ready, steps, full=full)
     finally:
         chrome.terminate()
 

@@ -30,6 +30,15 @@ Caveat: the variant was picked as the best of three on the same dev folds, so it
 Final ensemble (`models/ensemble_final/`): GRU hidden 64 trained on all 32,268 dev patients for 5 epochs (fold best epochs 4, 3, 2, 4, 4), focal α 0.5; GRU isotonic fit on its dev OOF; LightGBM keeps `models/final/calibrator.joblib` (identical to an isotonic refit on the same OOF, max gap 0.0); risk = 0.7 × LightGBM + 0.3 × GRU; policy τ = 0.03, k = 1, sticky = 0 (search_policy on the blended calibrated dev OOF; in-sample dev utility 0.4362). **Lockbox score: not measured.**
 Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (max |Δ| 0.0); ensemble online vs batch max |Δrisk| 4.3e-7 (≤ 1e-5). Recomputed ensemble bed outcomes: 6 early (4–12 h), 2 flagged outside that window (Bed 16 at 14 h, Bed 13 at 2 h before onset), 2 missed/late, 8 quiet, 6 with a false alert (Beds 02 and 17 newly) (LightGBM: 8 / 0 / 2 / 10 / 4 — the beds were originally picked with LightGBM's alerts).
 
+## Phase 10 — Gallery Label redesign (branch `feature/ui-redesign`, stacked on `feature/ensemble-and-ui`, 2026-11-03)
+- Brief from the author: a completely new UI for a live exhibition demo on his laptop (visitors walk up and arrive mid-story), every feature kept, and **all vitals and all labs for every hour plus insights for every hour**; must not look like a startup SaaS product. Recorded in `PRODUCT.md`.
+- impeccable new-work: seven grounded worlds; concept-seed (`seed:1cb1bf224b161401`) assigned **museum exhibit labels**; five sketches on the decision page; the author picked **Gallery Label**. Contract: `.impeccable/surfaces/frontend-src-main-tsx.md`; design record: `DESIGN.md`, `.impeccable/design.json`; sketches: `.impeccable/mocks/decision/`.
+- Structure: Ward wall (`/`) · bed mounted on its label (`/bed/:id`, tabs *Label*, *Every measurement* (34 variables, charts + hour-by-hour flowsheet), *Hour by hour* (risk and change, LightGBM/GRU parts, status, measurements, that hour's top-5 reasons)) · Tour (`/tour`, six stops; also a rail on every page) · Evidence (`/evidence`, lockbox room vs development annex). Old `/patient/:id` and `/model` links redirect.
+- API: `/api/patients/{id}` now returns all 8 vitals and 26 labs (was 6 + 4), `reasons_by_hour`, `risk_components` (LightGBM/GRU per hour, ensemble only) and `hosp_adm_time`; ward vitals add SpO₂. New API test for every measurement and hourly insights (both model kinds).
+- Finish review (fresh agent, impeccable finish-reviewer procedure; shipped agent type not available here): **fix**, 8 material findings; after two fix rounds 7 resolved (WHAT HAPPENED on the first screen, status clipping at 1280, "now" no longer in the Watch colour, flowsheet group headings, flowsheet height, evidence figures, vital tiles), 1 open: **self-hosted fonts need the owner's approval to download** the Atkinson Hyperlegible files (today they load from Google Fonts and fall back to Arial offline). Detector: 0 findings.
+- QA checklist re-run on Docker 10/10 (`reports/qa_checklist.md`); nginx `proxy_connect_timeout 3s` makes the backend-down message appear in ~3 s instead of ~60 s.
+- Screenshots: `reports/screenshots/*.jpg` (Gallery Label: ward, patient, measurements, hours, tour, model, model_full), `reports/screenshots/p9/` (P9 UI), `reports/screenshots/before/` (P7). UI history and findings: `reports/ui_review.md`.
+
 ## Task board
 | Task | Status | Notes |
 |---|---|---|
@@ -77,6 +86,7 @@ Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (m
 | P9.2 backend + Docker | DONE | `MODEL_KIND`; `/api/metrics` → `lockbox_test` + `dev_cv`; torch 2.6.0+cpu image 2.16 GB (P7: 1.36 GB); predict parity in Docker 0.0 |
 | P9.3 UI | DONE | impeccable critique + audit → typeset/layout/clarify/polish; model badge; dev band; LightGBM-reasons note; detector 0 findings; QA 10/10 |
 | P9.4 docs | DONE | README, model card, report, slides (15, PPTX/PDF), demo script, viva (Q28–Q30), presentation guide, `reports/ui_review.md` |
+| P10 UI redesign (Gallery Label) | DONE (fonts open) | All 34 measurements every hour, hourly insights, tour, evidence rooms; finish review 7/8 resolved; QA 10/10 on Docker; DESIGN.md |
 
 ## Key numbers (fill as they appear)
 - Patients / rows / septic / % positive rows: 40,336 / 1,552,210 / 2,932 (7.27%) / 1.80%
@@ -167,7 +177,8 @@ Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (m
 
 ## Blockers / questions for the human
 - Record the 60-s fallback screen recording for the demo (see `reports/demo_script.md`).
-- Tests: 93/93 pass (63 `tests/` incl. 5 GRU + 5 ensemble tests; 30 `backend/tests/`, every API test run for both model kinds); ruff clean on src, tests, backend.
+- Tests: 95/95 pass (63 `tests/`; 32 `backend/tests/`, every API test run for both model kinds); ruff clean on src, tests, backend.
+- Approve (or not) downloading the Atkinson Hyperlegible Next and Mono font files so the UI works offline at the exhibition.
 - Review PR `feature/ensemble-and-ui`. If you prefer to serve the lockbox-tested model, set `MODEL_KIND=lgbm` (nothing else changes).
 
 ## Experiment log

@@ -110,7 +110,7 @@ Our causal rolling/slope/time-since features give the trees the temporal context
 - The cost: 20.2% of hours in alert, event PPV 4.6%, 0.53 false alert events per non-septic patient-day (about 1 per 45 h per patient, about 13/day on a 24-bed unit).
 - Mitigations available in the policy: **k-consecutive** hours and **sticky** suppression (the search found k = 1, s = 0 best for utility, but a hospital could trade utility for fewer alerts).
 - Mitigations in the product: a **Watch** tier below the threshold, calibrated risk, and **reasons** so a clinician can dismiss an alert quickly.
-- In deployment, set the threshold for an **agreed alert budget**. The trade-off curve on the Model page shows the cost: at τ = 0.05, dev sensitivity is 70.0% at 0.22 false alerts/day.
+- In deployment, set the threshold for an **agreed alert budget**. The trade-off curve on the Evidence page (E9) shows the cost: at τ = 0.05, dev sensitivity is 70.0% at 0.22 false alerts/day.
 
 ### Q17. The median lead time is 29 h. Isn't that suspiciously early?
 **Headline: it's real but must be read with the alert rate.** Lead time = *t_sepsis* − first alert within a 48-h look-back. At a 3% threshold some septic patients are flagged early in their stay and remain flagged, so a 29-h lead is less specific than a 6-h one. The utility gives no credit before −12 h (it charges −0.05/h), so lead time does not inflate utility. The clinically relevant number is sensitivity within [−12, +3] h: 87.54%.
@@ -207,7 +207,7 @@ Limits:
 - What was searched, fixed before the run: w ∈ {0.5, 0.6, 0.7, 0.8, 0.9} and two GRU variants (hidden 64; +32 LightGBM features). Every configuration is reported (`reports/tables/ensemble_dev_*.csv`). The hidden-64 variant was adopted because its gain over the plain-GRU ensemble had a CI above 0 (+0.0072 [+0.0033, +0.0109]); the +32-features variant did not (−0.0002 [−0.0039, +0.0032]).
 - Honest size: +0.013 utility is small, and picking the best of three variants on the same folds adds some optimism.
 
-*Show:* Model page → "Development comparison (nested 5-fold CV)"; `reports/tables/ensemble_dev_comparison.csv`.
+*Show:* Evidence page → "Development comparison (nested 5-fold CV)" annex; `reports/tables/ensemble_dev_comparison.csv`.
 
 ### Q29. Why not test the ensemble on the lockbox?
 **Headline: the lockbox was spent once, on LightGBM; opening it again to check a model we chose afterwards would turn it into a second validation set.**
