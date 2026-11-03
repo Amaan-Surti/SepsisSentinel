@@ -16,6 +16,8 @@ Model answers with the real numbers. Each answer opens with a one-line headline,
 | Brier | **0.0164** |
 | Event PPV | **4.62%** |
 | Policy | **τ = 0.03, k = 1, sticky = 0** |
+| *Served model (dev only)* | **LightGBM + GRU ensemble, 0.7 / 0.3**; lockbox score **not measured** |
+| *Dev nested CV utility* | LightGBM 0.4196 · GRU (h64) 0.3529 · ensemble **0.4327** · Δ **+0.0131 [+0.0072, +0.0190]** |
 | Baselines (utility) | B1 SIRS 0.0507 · B2 qSOFA 0.0122 · B3 LogReg 0.2438 |
 | Cross-hospital utility | A internal 0.4405 → A→B 0.2963 (−32.7%) · B internal 0.3759 → B→A 0.3188 (FA/day 0.33 → 0.93) |
 
@@ -82,7 +84,7 @@ Implications: a miss near onset costs twice what a perfect alert earns, so the o
 - Easy to calibrate.
 - Top Challenge entries were mostly boosted trees on engineered temporal features.
 
-Our causal rolling/slope/time-since features give the trees the temporal context an RNN would learn. **Honest caveat:** the optional GRU comparison (Phase 6) was not run, so we make no empirical claim that LightGBM beats a GRU on this data. That is listed as a limitation.
+Our causal rolling/slope/time-since features give the trees the temporal context an RNN would learn. **Evidence (development data, nested 5-fold CV):** a unidirectional GRU alone scores 0.3498 (hidden 128) or 0.3529 (hidden 64) against LightGBM's 0.4196; GRU − LightGBM −0.0698 [−0.0838, −0.0563]. The GRU is weaker alone but useful as a second opinion (Q28).
 
 ### Q12. What did Optuna tuning buy you?
 **Headline: little in AUROC, more in utility and calibration.** 40 TPE trials on folds 0–2 maximised validation AUPRC: 0.1342 vs 0.1264 for the defaults. On 5-fold OOF, AUROC barely moved (0.8446 → 0.8447), but utility rose from 0.4183 to 0.4262 and ECE fell from 0.0412 to 0.0182. The tuned model is more regularised (min_child_samples 847, learning rate 0.010, scale_pos_weight 2.79 vs 5). The final model was trained on all dev rows for 303 rounds (1.1 × the mean best iteration of 275.6).
@@ -175,18 +177,18 @@ Limits:
 
 ### Q25. How is the product built, and how do you know it matches the research code?
 **Headline: one shared inference module, tested end to end.**
-- **Backend:** FastAPI, loading the frozen `models/final/` (booster, calibrator, policy, feature list) once at startup.
-- **Online path:** `src/sepsis/inference.py` runs cleaning → `build_features_from_df` → model → isotonic → policy, the same function the demo cohort was built with.
-- **Tests:** an API test posts a demo patient's raw rows and checks the risks equal the stored predictions (< 10⁻⁶; observed 0).
-- **Frontend:** React/TypeScript with a replay clock.
-- **Deployment:** Docker Compose (API :8000, nginx UI :8080).
-- 67 automated tests pass.
+- **Backend:** FastAPI, loading the frozen `models/final/` (booster, calibrator, policy, feature list) and, by default, `models/ensemble_final/` (GRU, GRU calibrator, `ensemble.json`) once at startup. `MODEL_KIND=lgbm` serves LightGBM alone.
+- **Online path:** `src/sepsis/inference.py` runs cleaning → `build_features_from_df` → LightGBM → isotonic, and the same features → sequence rows → GRU (CPU) → isotonic, then blends 0.7 / 0.3 and applies the policy. The demo cohort was scored with the same functions.
+- **Tests:** an API test posts a demo patient's raw rows and checks the risks equal the stored predictions (< 10⁻⁶) for both model kinds; ensemble online vs batch max |Δ| 4.3 × 10⁻⁷.
+- **Frontend:** React/TypeScript with a replay clock and a model badge (Ensemble / LightGBM).
+- **Deployment:** Docker Compose (API :8000 with CPU-only PyTorch, nginx UI :8080).
+- 93 automated tests pass.
 
 ### Q26. Why did you include missed cases and false alarms in the demo?
 **Headline: honesty.** The 24-bed cohort is 8 early detections, 2 missed or late septic patients, 10 quiet non-septic patients and 4 non-septic patients with false alerts, all from the lockbox test set. A demo with only successes would overstate the system. The real failure modes are what a clinician needs to see.
 
 ### Q27. What would you do with more time?
-- Run the GRU/focal-loss comparison and an ensemble.
+- A fresh, untouched test set (e.g. a third hospital) to measure the ensemble once, since the lockbox is spent.
 - Domain adaptation or few-shot recalibration with a small amount of target-site data.
 - Per-subgroup CIs and a fairness-aware threshold analysis.
 - Alert-budget-constrained policy search (maximise sensitivity subject to ≤ X alerts/day).
@@ -195,6 +197,34 @@ Limits:
 
 ---
 
+## G. The ensemble (Phase 9)
+
+### Q28. Why an ensemble?
+**Headline: the GRU is weaker alone but makes different mistakes, so averaging helps on development data.**
+- Nested 5-fold CV on 32,268 development patients (each fold's calibration, weight and policy fitted on the other four): LightGBM **0.4196**, GRU (hidden 64) **0.3529**, ensemble 0.7 × LightGBM + 0.3 × GRU **0.4327**.
+- Paired patient bootstrap of the nested alerts: ensemble − LightGBM **+0.0131 [+0.0072, +0.0190]**, better in 100% of 1,000 resamples. False alerts fall from 0.478 to 0.415 per patient-day at the same 85% sensitivity.
+- Why it can work: LightGBM sees hand-made windows (6/12/24 h); the GRU reads the raw hourly sequence and its own memory, so their errors are only partly correlated.
+- What was searched, fixed before the run: w ∈ {0.5, 0.6, 0.7, 0.8, 0.9} and two GRU variants (hidden 64; +32 LightGBM features). Every configuration is reported (`reports/tables/ensemble_dev_*.csv`). The hidden-64 variant was adopted because its gain over the plain-GRU ensemble had a CI above 0 (+0.0072 [+0.0033, +0.0109]); the +32-features variant did not (−0.0002 [−0.0039, +0.0032]).
+- Honest size: +0.013 utility is small, and picking the best of three variants on the same folds adds some optimism.
+
+*Show:* Model page → "Development comparison (nested 5-fold CV)"; `reports/tables/ensemble_dev_comparison.csv`.
+
+### Q29. Why not test the ensemble on the lockbox?
+**Headline: the lockbox was spent once, on LightGBM; opening it again to check a model we chose afterwards would turn it into a second validation set.**
+- The protocol said: evaluate once (P5.T6) and never use the test set to choose anything. Scoring the ensemble on it now would tempt exactly that — if it came out lower, would we switch back? Either answer makes the 8,068 patients part of model selection.
+- So the claims are kept apart: **0.4270 [0.3929, 0.4604] is the lockbox result of the LightGBM component**; the ensemble's evidence is development-only (nested utility 0.4327 vs 0.4196 for LightGBM on the same folds). The app and every document label them that way and never put them in one table.
+- What the dev result does suggest (not prove): for LightGBM, the development estimates (0.4267 pooled, 0.4196 nested) were close to its lockbox result (0.4270), so development estimates have transferred well once on this data. The ensemble's +0.0131 is a development gain only; its test performance is unknown.
+- The right next step is a new untouched dataset, not re-opening the old one. `MODEL_KIND=lgbm` serves the test-validated model if an examiner prefers it.
+
+### Q30. How does the GRU stay causal?
+**Headline: three locks — causal inputs, a one-directional network, and a test that tries to break it.**
+1. **Inputs:** each hour's GRU input (LOCF values, measured flags, hours since last measurement, SIRS, partial SOFA, static fields, ICU hour) comes from the same causal feature builder as LightGBM, which only looks at hours ≤ *t* (prefix-equality test since P3).
+2. **Network:** `nn.GRU` is unidirectional (`bidirectional=False`); the output at hour *t* is a function of inputs 0…*t* only. Padding is on the right, so it never leaks into earlier hours. Normalisation statistics come from training patients only (all 32,268 dev patients for the final model).
+3. **Tests:** `tests/test_gru.py::test_gru_is_causal` changes hours ≥ 12 of a random sequence and checks outputs before hour 12 are bit-identical. `tests/test_ensemble.py::test_ensemble_online_path_is_causal` does the same on the full served path — raw rows → cleaning → features → LightGBM + GRU → calibrators → blend — by truncating a real demo stay and by raising HR, Resp, lactate and temperature after a cut-off: earlier ensemble risks do not move (< 10⁻⁶), later ones do.
+- Inference runs on CPU in float32, so the risk is the same on every machine (online vs batch 4.3 × 10⁻⁷).
+
+---
+
 ## Limitations to state unprompted (build plan §13.4)
 
-Retrospective, de-identified data · Sepsis-3 labels from records are not perfect ground truth · no hospital C, so external validity is only simulated with A↔B · thresholds trade missed cases against alarm fatigue · SHAP explains the model, not causes · not a medical device.
+Retrospective, de-identified data · Sepsis-3 labels from records are not perfect ground truth · no hospital C, so external validity is only simulated with A↔B · thresholds trade missed cases against alarm fatigue · SHAP explains the model, not causes · the served ensemble has no lockbox estimate (its gain is a development-data result; reasons come from the LightGBM part only) · not a medical device.

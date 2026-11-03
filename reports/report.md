@@ -8,7 +8,7 @@
 
 ## Abstract
 
-Sepsis is a leading cause of death in intensive care, and every hour of delayed treatment raises mortality. We built SepsisSentinel, a real-time early-warning system trained on the PhysioNet/Computing in Cardiology Challenge 2019 data (40,336 ICU patients from two hospitals, 1,552,210 hourly rows, 7.27% septic). From the 40 hourly variables we derive 298 strictly causal features, train a LightGBM model tuned with Optuna, calibrate it with isotonic regression, and choose an alert threshold that maximises the official Challenge utility score. On a lockbox test set of 8,068 patients, evaluated once, the system reaches a normalized utility of 0.4270 (95% CI 0.3929–0.4604), AUROC 0.8475, and patient-level sensitivity of 87.54%, with a median first alert 29.0 h before onset at 0.53 false alert events per patient-day. Calibration error is 0.0027. It clearly outperforms SIRS (utility 0.0507), qSOFA (0.0122) and logistic regression (0.2438). However, when a model trained on one hospital is applied to the other, utility falls by up to 32.7%. We release a FastAPI and React dashboard that replays test patients with SHAP explanations.
+Sepsis is a leading cause of death in intensive care, and every hour of delayed treatment raises mortality. We built SepsisSentinel, a real-time early-warning system trained on the PhysioNet/Computing in Cardiology Challenge 2019 data (40,336 ICU patients from two hospitals, 1,552,210 hourly rows, 7.27% septic). From the 40 hourly variables we derive 298 strictly causal features, train a LightGBM model tuned with Optuna, calibrate it with isotonic regression, and choose an alert threshold that maximises the official Challenge utility score. On a lockbox test set of 8,068 patients, evaluated once, the system reaches a normalized utility of 0.4270 (95% CI 0.3929–0.4604), AUROC 0.8475, and patient-level sensitivity of 87.54%, with a median first alert 29.0 h before onset at 0.53 false alert events per patient-day. Calibration error is 0.0027. It clearly outperforms SIRS (utility 0.0507), qSOFA (0.0122) and logistic regression (0.2438). However, when a model trained on one hospital is applied to the other, utility falls by up to 32.7%. A unidirectional GRU is weaker alone, but averaging it with LightGBM improves development utility under nested 5-fold cross-validation (0.4327 vs 0.4196; paired bootstrap +0.0131, 95% CI +0.0072 to +0.0190). The served model is this LightGBM + GRU ensemble, chosen on development data; its lockbox score has not been measured, and the 0.4270 test result belongs to the LightGBM component alone. We release a FastAPI and React dashboard that replays test patients with SHAP explanations.
 
 ---
 
@@ -38,6 +38,7 @@ An early-warning system is only useful if clinicians act on it. ICU staff alread
 2. An explicit alert policy optimised for the official utility, with sensitivity, lead time, false-alert burden and event PPV reported side by side.
 3. A cross-hospital study (train on one hospital, test on the other, four feature variants) that quantifies how much performance survives a change of site.
 4. Global and per-hour SHAP explanations, a subgroup analysis, and an end-to-end product (FastAPI, React dashboard, Docker) that replays real test patients.
+5. A pre-registered, development-only comparison of LightGBM, a causal GRU and their ensemble under nested cross-validation, with every configuration reported, and a served ensemble whose evidence is kept separate from the single lockbox result.
 
 ---
 
@@ -156,6 +157,10 @@ Slopes are least-squares slopes of value against hour over the observed points i
 
 **LightGBM.** Binary objective, early stopping on validation average precision (patience 200), seed 42, deterministic mode. Default parameters (learning rate 0.03, 63 leaves, min child samples 200, scale_pos_weight 5) were first evaluated with 5-fold CV. **Optuna** (TPE sampler, seed 42) then ran 40 trials over learning rate [0.01, 0.1], num_leaves [15, 255], min_child_samples [20, 1000], feature_fraction [0.4, 1.0], bagging_fraction [0.5, 1.0], λ₂ [10⁻³, 10] and scale_pos_weight [1, 20], maximising mean validation AUPRC over dev folds 0–2. The best trial (13) reached AUPRC 0.1342 vs 0.1264 for the defaults, with learning rate 0.0102, 126 leaves, min child samples 847, feature fraction 0.897, bagging fraction 0.517, λ₂ 0.301 and scale_pos_weight 2.79. The **final model** was trained on all 1,241,132 dev rows for 303 rounds (1.1 × the mean best iteration of 275.6 across the 5 folds).
 
+**GRU (Phases 6 and 9).** Each hour is a 111-dimensional input: 34 LOCF values (z-scored with training-patient statistics, missing → 0), 34 measured flags, 34 hours-since-measured (÷ 72), SIRS ÷ 4, partial SOFA ÷ 13, age, sex, unit one-hot, clipped admission time and (hour + 1) ÷ 336. All come from the same causal feature builder. A linear projection (128) feeds a two-layer **unidirectional** GRU and a per-hour head; padding is on the right and masked out of the focal loss (γ = 2, α = 0.5 chosen on fold 0 from {0.5, 0.75, 0.9}). Training uses AdamW (10⁻³), batches of 64 patients, gradient clipping and early stopping on validation AUPRC, on the same five folds as LightGBM, so out-of-fold rows match one to one.
+
+**Ensemble and nested selection.** Each model's out-of-fold probabilities are calibrated with isotonic regression and blended as w × LightGBM + (1 − w) × GRU. Before any result was produced we fixed the search space (recorded in STATUS.md): w ∈ {0.5, 0.6, 0.7, 0.8, 0.9} (widened once from {0.3, …, 0.7}, where the first run's choice sat on the edge) and two GRU variants, (a) hidden size 64 and (b) the 32 highest-gain LightGBM features appended to the input (for fold k taken from the LightGBM model trained without fold k). In the **nested** scheme, for each outer fold the calibrators, w and the alert policy are all fitted on the other four folds and applied to the held-out fold. A variant replaces the plain GRU only if it has the best nested ensemble utility and the paired patient bootstrap of its gain over the plain-GRU ensemble has a 95% CI above zero. The final GRU is trained on all 32,268 dev patients for (median best fold epoch + 1) epochs; its calibrator, w and policy are fitted on the dev out-of-fold predictions. LightGBM keeps its frozen calibrator.
+
 ### 4.5 Calibration
 
 Class weighting and early stopping on AUPRC distort probabilities. We fitted `IsotonicRegression(out_of_bounds="clip")` on the tuned model's dev out-of-fold probabilities, so the calibrator never saw a prediction made on its own training rows. The deployed score is calibrated risk = isotonic(LightGBM(x)).
@@ -215,6 +220,28 @@ Tuning barely moved AUROC (0.8446 → 0.8447) but improved utility (0.4183 → 0
 | − indices and scores (F8–F9) | 288 | 0.4234 | −0.0028 | 0.8454 | 0.1207 |
 
 Rolling statistics, deltas and clinical indices each add a little; gradient boosting can partly rebuild them from raw values. Missingness information cannot be rebuilt from the LOCF values, and removing it costs 5.2% of the utility.
+
+### 5.1 LightGBM, GRU and ensemble (nested 5-fold CV, development data only)
+
+These numbers come from development data and are **not comparable** with the lockbox results in §6. Nested utilities are a little lower than pooled ones because nothing is fitted on the rows being scored (LightGBM: 0.4267 pooled, 0.4196 nested).
+
+**Table 4b. Nested out-of-fold results, 32,268 development patients (all configurations tried).**
+
+| Model | Utility | AUROC | Sensitivity | False alerts/day | Median lead |
+|---|---|---|---|---|---|
+| LightGBM | 0.4196 | 0.8421 | 85.46% | 0.478 | 23 h |
+| GRU (hidden 128) | 0.3498 | 0.8069 | 80.39% | 0.455 | 23 h |
+| GRU (hidden 64) | 0.3529 | 0.8119 | 78.13% | 0.400 | 22 h |
+| GRU + 32 LightGBM features | 0.3422 | 0.8110 | 78.73% | 0.442 | 24 h |
+| Ensemble, GRU 128 | 0.4255 | 0.8438 | 85.00% | 0.429 | 23 h |
+| **Ensemble, GRU 64 (served)** | **0.4327** | **0.8466** | **85.00%** | **0.415** | **23 h** |
+| Ensemble, GRU + 32 features | 0.4252 | 0.8457 | 85.12% | 0.441 | 23 h |
+
+**Table 4c. Blend weight, served variant (nested).** w = 0.5: 0.4246 · 0.6: 0.4310 · **0.7: 0.4327 (chosen in all five folds)** · 0.8: 0.4323 · 0.9: 0.4287. With the 128-unit GRU the folds split between 0.7 (two) and 0.8 (three).
+
+**Paired patient bootstrap (1,000 resamples, nested alerts).** GRU − LightGBM −0.0698 [−0.0838, −0.0563]; ensemble (GRU 64) − LightGBM **+0.0131 [+0.0072, +0.0190]**; ensemble (GRU 64) − ensemble (GRU 128) +0.0072 [+0.0033, +0.0109], so the hidden-64 variant was adopted; ensemble (+32 features) − ensemble (GRU 128) −0.0002 [−0.0039, +0.0032], not adopted.
+
+The GRU alone is clearly worse than LightGBM, but the ensemble is better than either: at the same 85% sensitivity it raises 0.415 instead of 0.478 false alerts per patient-day. The gain is small, and choosing the best of three variants on the same folds adds some optimism even with the rule fixed in advance. The final ensemble uses 0.7 × LightGBM + 0.3 × GRU (hidden 64, 5 epochs on all dev patients, fold best epochs 4, 3, 2, 4, 4) and the policy τ = 0.03, k = 1, sticky = 0 found on the blended calibrated dev out-of-fold predictions. The frozen LightGBM calibrator is identical to an isotonic refit on the same predictions (maximum difference 0.0).
 
 ---
 
@@ -344,9 +371,9 @@ Findings:
 
 Practical conclusion: a sepsis model should not be moved to a new hospital without, at minimum, re-tuning the alert threshold on local data, and preferably local recalibration and a silent-mode trial.
 
-### 6.10 Deep-learning comparison (not performed)
+### 6.10 The ensemble was not evaluated on the lockbox
 
-The optional GRU with focal loss (build plan Phase 6) was not run, so this report makes no claim about LightGBM versus deep sequence models on this data beyond what the Challenge literature reports. The API serves LightGBM regardless.
+All results in this section belong to the LightGBM model. The LightGBM + GRU ensemble (§5.1) was chosen after the single lockbox evaluation, so scoring it on the same 8,068 patients would turn the lockbox into a second validation set. **The served model is a LightGBM + GRU ensemble chosen on development data; its lockbox score has not been measured; the 0.4270 test result belongs to the LightGBM component alone.** The only evidence for the ensemble is the development comparison. For LightGBM, development estimates (0.4267 pooled, 0.4196 nested) were close to the lockbox result, which is encouraging but not proof that the ensemble's gain transfers. Measuring it needs a new untouched dataset.
 
 ---
 
@@ -358,11 +385,13 @@ The optional GRU with focal loss (build plan Phase 6) was not run, so this repor
  ┌──────────────────────────── offline (Phases 1–5) ───────────────────────────┐
  │ PSV files → io → cleaning → features (298, causal) → LightGBM (Optuna)       │
  │        → isotonic calibrator → policy search → models/final/  (frozen)       │
+ │ features → sequences → GRU (dev folds) → nested selection → ensemble_final/  │
  │ lockbox test patients (stay 24–96 h) → demo_cohort → data/demo/ (24 beds)    │
  └──────────────────────────────────────────────────────────────────────────────┘
                                    │ loaded once at startup (lifespan)
  ┌───────────────────────── backend (FastAPI, :8000) ───────────────────────────┐
- │ SepsisService: booster · calibrator · policy · TreeExplainer · demo tables   │
+ │ SepsisService (MODEL_KIND=ensemble|lgbm): booster · GRU (CPU) · calibrators  │
+ │   · ensemble.json weight + policy · TreeExplainer · demo tables              │
  │ GET /api/health  /api/config  /api/ward  /api/patients/{id}  /api/metrics     │
  │ GET /api/model-card  /api/figures/{name}   POST /api/predict (online path)    │
  └──────────────────────────────────────────────────────────────────────────────┘
@@ -381,35 +410,37 @@ From lockbox test patients with stays of 24–96 h, after applying the frozen mo
 - 10 non-septic patients with no alerts;
 - 4 non-septic patients with at least one false alert.
 
-Bed numbers are shuffled. Including misses and false alarms is deliberate, so the demo shows the system's real failure modes. Only 11 of the 259 eligible septic test patients had a first alert in the 4–12 h window, because at τ = 0.03 most septic patients are flagged more than 12 h ahead (§6.5). Selecting demo patients does not change any metric.
+Bed numbers are shuffled. Including misses and false alarms is deliberate, so the demo shows the system's real failure modes. The beds were chosen with LightGBM's alerts and were **not reselected** for the ensemble; re-scoring them with the ensemble (same outcome rules) gives 6 early, 2 flagged outside the 4–12 h window, 2 missed or late, 8 quiet and 6 with a false alert, and the app shows the served model's own outcome. Only 11 of the 259 eligible septic test patients had a first alert in the 4–12 h window, because at τ = 0.03 most septic patients are flagged more than 12 h ahead (§6.5). Selecting demo patients does not change any metric.
 
 ### 7.3 One code path for batch and online scoring
 
-`src/sepsis/inference.py` implements raw rows → cleaning → `build_features_from_df` → LightGBM → isotonic → policy. The demo builder and `POST /api/predict` both call it. An API test posts a demo patient's raw rows and checks that the returned risks match the stored demo predictions to within 10⁻⁶ (observed difference: 0). That shows the online path computes the same features as training, the most common silent failure when a model is deployed.
+`src/sepsis/inference.py` implements raw rows → cleaning → `build_features_from_df` → LightGBM → isotonic, and for the ensemble the same features → sequence rows → GRU (CPU, float32) → isotonic → 0.7/0.3 blend → policy. The demo builder and `POST /api/predict` both call it. API tests post a demo patient's raw rows and check that the returned risks match the stored demo predictions to within 10⁻⁶ for both model kinds; the ensemble's online path matches a batched pass over the precomputed features to 4.3 × 10⁻⁷. A causality test truncates a real stay and perturbs later raw hours: earlier ensemble risks do not change. That shows the online path computes the same features as training, the most common silent failure when a model is deployed.
 
 ### 7.4 Dashboard
 
-- **Replay clock:** play/pause, ±1 h steps, three speeds, a threshold slider (1–50%, default 3%), and a "show ground truth" toggle that reveals the onset hour for teaching.
+- **Replay clock:** play/pause (Space), ±1 h steps (← / →), three speeds, a threshold slider (1–50%, default 3%), a "show ground truth" toggle that reveals the onset hour for teaching, and `?t=` deep links.
+- **Model badge** in the top bar (Ensemble / LightGBM).
 - **Ward page:** one row per bed with calibrated risk bar (threshold tick), 12-h sparkline, last vitals, and a level chip (Alert: risk ≥ τ; Watch: risk ≥ ½τ; OK). Levels always carry text and a glyph, never colour alone.
-- **Patient page:** risk trajectory with the threshold, shaded alert hours and onset line; vitals and lab panels on the same time axis; "Why this risk" list of top-5 SHAP reasons.
-- **Model page:** test metrics with CIs, baselines, threshold trade-off curve, calibration and ROC/PR figures, the cross-hospital table, and the model card.
-- A disclaimer banner is on every page.
+- **Patient page:** risk trajectory with the threshold, shaded alert hours and onset line; vitals and lab panels on the same time axis; "Why this risk" list of top-5 SHAP reasons, with a note that they come from the LightGBM part of the ensemble.
+- **Model page:** a "Lockbox test (LightGBM)" band (headline sentence, test metrics with CIs, baselines, calibration and ROC/PR figures) and a visually distinct, dashed "Development comparison (nested 5-fold CV)" band (model table, weight table, bootstrap CIs, served configuration); then the threshold trade-off curve, the cross-hospital table and the model card.
+- "Decision support on retrospective data. Not a medical device." is in the sticky header and the footer of every page.
+- The UI was reviewed with impeccable critique (24/40) and audit (12/20) before the P9 changes; the findings and fixes (projector type scale, AA contrast, reflow, real links for beds, labelled controls) are in `reports/ui_review.md`.
 
 ![Ward page at ICU hour 30: Bed 16 has just crossed the 3% threshold](screenshots/ward.jpg)
 
-**Figure A.** Ward page at ICU hour 30. Bed 16 has just crossed the 3% threshold (Alert); two beds are on Watch.
+**Figure A.** Ward page at ICU hour 30 (ensemble). Bed 16 is in Alert for its third hour; summary chips give the count and rule for each level.
 
 ![Patient page for Bed 16 with ground truth shown](screenshots/patient.jpg)
 
-**Figure B.** Patient page for Bed 16 with ground truth revealed. The alert fires at hour 30, 12 h before the labelled onset at hour 42. Top reasons: lactate drawn 2 h ago, temperature 38.2 °C and its 6/12-h maxima, recent PaCO2.
+**Figure B.** Patient page for Bed 16 with ground truth revealed. The ensemble's first alert is at hour 28, 14 h before the labelled onset at hour 42 (LightGBM alone first alerted at hour 30). Top reasons at hour 30, from the LightGBM component: lactate drawn 2 h ago, temperature 38.2 °C and its 6/12-h maxima, recent PaCO2.
 
 ![Model page](screenshots/model.jpg)
 
-**Figure C.** Model page: frozen lockbox metrics with CIs and the baseline comparison, served from `reports/tables/`.
+**Figure C.** Model page: the lockbox band (LightGBM, frozen metrics with CIs and baselines) above the separate development-comparison band, all served from `reports/tables/`.
 
 ### 7.5 Engineering quality
 
-67 automated tests (53 for the `sepsis` package, 14 for the API) and ruff linting pass. The stack is containerised: a `python:3.11-slim` API image with `libgomp1` for LightGBM, and a two-stage `node:20` → `nginx:1.27` frontend that proxies `/api`, orchestrated by Docker Compose with health checks.
+93 automated tests (63 for the `sepsis` package, 30 for the API, which runs under both `MODEL_KIND=ensemble` and `MODEL_KIND=lgbm`) and ruff linting pass. The stack is containerised: a `python:3.11-slim` API image with `libgomp1` for LightGBM and CPU-only PyTorch 2.6.0 for the GRU, and a two-stage `node:20` → `nginx:1.27` frontend that proxies `/api`, orchestrated by Docker Compose with health checks.
 
 ---
 
@@ -446,7 +477,7 @@ The model leans on when tests are ordered and how long the patient has been in t
 6. **SHAP explains the model, not causes**, and attributions to timing features describe clinician behaviour.
 7. **Partial scores.** qSOFA lacks mentation and SOFA lacks respiratory (PaO2/FiO2 ratio not reliably available), CNS and urine output, which handicaps baselines B1/B2 and the score features.
 8. **Subgroup analyses** are underpowered and without CIs.
-9. **No deep-learning comparison** (Phase 6 not run).
+9. **The served ensemble has no lockbox estimate.** Its +0.0131 utility gain is a development-data result under nested CV; the GRU variant was the best of three tried on the same folds, and SHAP reasons cover only the LightGBM half.
 10. **Not a medical device.**
 
 ---
@@ -463,7 +494,7 @@ The model leans on when tests are ordered and how long the patient has been in t
 
 ## 11. Conclusion
 
-SepsisSentinel shows that a carefully engineered, leakage-tested gradient-boosting pipeline can provide calibrated, explainable early warnings of sepsis on ICU data. On a single-use lockbox test of 8,068 patients it achieves normalized utility 0.4270, AUROC 0.8475 and 87.54% patient sensitivity, far above SIRS, qSOFA and logistic-regression baselines. The cross-hospital experiments give a sobering counterpoint: moving the model to a different hospital costs up to a third of its utility, mostly through a mis-calibrated alert rate. The main lesson for clinical machine learning is that the test score at your own hospital is where validation starts, not where it ends.
+SepsisSentinel shows that a carefully engineered, leakage-tested gradient-boosting pipeline can provide calibrated, explainable early warnings of sepsis on ICU data. On a single-use lockbox test of 8,068 patients it achieves normalized utility 0.4270, AUROC 0.8475 and 87.54% patient sensitivity, far above SIRS, qSOFA and logistic-regression baselines. The cross-hospital experiments give a sobering counterpoint: moving the model to a different hospital costs up to a third of its utility, mostly through a mis-calibrated alert rate. A causal GRU adds a small, development-only gain when averaged with LightGBM; we serve that ensemble but report its evidence separately and keep the lockbox claim with the model it measured. The main lesson for clinical machine learning is that the test score at your own hospital is where validation starts, not where it ends.
 
 ---
 

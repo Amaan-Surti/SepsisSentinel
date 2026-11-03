@@ -349,7 +349,127 @@ SHAP TreeExplainer on the final model; subgroup metrics on calibrated dev OOF.
 
 ## Appendix: other artifacts
 
-**Table 18.** policy_grid_ablation_no_deltas. Showing 5 of 594 rows. *Source: `tables/policy_grid_ablation_no_deltas.csv`*
+**Table 18.** ensemble_dev_bootstrap. *Source: `tables/ensemble_dev_bootstrap.csv`*
+
+| comparison | diff | ci_low | ci_high | prob_better |
+|---|---|---|---|---|
+| gru/plain - lgbm/- | -0.0698 | -0.0838 | -0.0563 | 0.0000 |
+| ensemble/plain - lgbm/- | 0.0058 | 0.0011 | 0.0106 | 0.9930 |
+| ensemble/h64 - lgbm/- | 0.0131 | 0.0072 | 0.0190 | 1.0000 |
+| ensemble/h64 - ensemble/plain | 0.0072 | 0.0033 | 0.0109 | 1.0000 |
+| ensemble/top32 - lgbm/- | 0.0056 | 0.0017 | 0.0096 | 0.9980 |
+| ensemble/top32 - ensemble/plain | -0.0002 | -0.0039 | 0.0032 | 0.4540 |
+
+**Table 19.** ensemble_dev_comparison. *Source: `tables/ensemble_dev_comparison.csv`*
+
+| model | gru_variant | scheme | utility_norm | auroc | auprc | ece | patient_sensitivity | median_lead_time_h | false_alerts_per_patient_day | threshold | k | sticky | weight |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| lgbm | - | pooled | 0.4267 | 0.8451 | 0.1198 | 3.57e-18 | 0.8662 | 24.0000 | 0.4872 | 0.0300 | 1 | 0 | — |
+| lgbm | - | nested | 0.4196 | 0.8421 | 0.1179 | 0.0002 | 0.8546 | 23.0000 | 0.4777 | 0.0300 | 1 | 0 | — |
+| gru | plain | pooled | 0.3633 | 0.8151 | 0.1097 | 7.81e-20 | 0.8146 | 23.0000 | 0.4526 | 0.0300 | 1 | 0 | — |
+| gru | plain | nested | 0.3498 | 0.8069 | 0.1040 | 0.0008 | 0.8039 | 23.0000 | 0.4549 | 0.0300 | 1 | 0 | — |
+| ensemble | plain | pooled | 0.4319 | 0.8474 | 0.1314 | 0.0008 | 0.8495 | 23.0000 | 0.4128 | 0.0300 | 1 | 0 | 0.7000 |
+| ensemble | plain | nested | 0.4255 | 0.8438 | 0.1244 | 0.0006 | 0.8500 | 23.0000 | 0.4295 | 0.0300 | 1 | 0 | 0.7000 |
+| gru | h64 | pooled | 0.3690 | 0.8188 | 0.1081 | 8.46e-18 | 0.8039 | 23.0000 | 0.4154 | 0.0300 | 1 | 0 | — |
+| gru | h64 | nested | 0.3529 | 0.8119 | 0.1053 | 0.0005 | 0.7813 | 22.0000 | 0.3997 | 0.0300 | 1 | 0 | — |
+| ensemble | h64 | pooled | 0.4362 | 0.8488 | 0.1308 | 0.0009 | 0.8500 | 23.0000 | 0.4093 | 0.0300 | 1 | 0 | 0.7000 |
+| ensemble | h64 | nested | 0.4327 | 0.8466 | 0.1264 | 0.0008 | 0.8500 | 23.0000 | 0.4146 | 0.0300 | 1 | 0 | 0.7000 |
+| gru | top32 | pooled | 0.3605 | 0.8185 | 0.1110 | 7.25e-20 | 0.7903 | 23.0000 | 0.4190 | 0.0300 | 1 | 0 | — |
+| gru | top32 | nested | 0.3422 | 0.8110 | 0.1072 | 0.0006 | 0.7873 | 24.0000 | 0.4417 | 0.0300 | 1 | 0 | — |
+| ensemble | top32 | pooled | 0.4302 | 0.8486 | 0.1311 | 0.0008 | 0.8465 | 23.0000 | 0.4126 | 0.0300 | 1 | 0 | 0.7000 |
+| ensemble | top32 | nested | 0.4252 | 0.8457 | 0.1238 | 0.0004 | 0.8512 | 23.0000 | 0.4410 | 0.0300 | 1 | 0 | 0.7000 |
+
+**Table 20.** ensemble_dev_final. *Source: `tables/ensemble_dev_final.csv`*
+
+| model | gru_variant | scheme | utility_norm | auroc | auprc | ece | patient_sensitivity | median_lead_time_h | false_alerts_per_patient_day | weight_lgbm | threshold | k | sticky | gru_epochs |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| ensemble | h64 | nested | 0.4327 | 0.8466 | 0.1264 | 0.0008 | 0.8500 | 23.0000 | 0.4146 | 0.7000 | 0.0300 | 1 | 0 | 5 |
+| ensemble | h64 | pooled | 0.4362 | 0.8488 | 0.1308 | 0.0009 | 0.8500 | 23.0000 | 0.4093 | 0.7000 | 0.0300 | 1 | 0 | 5 |
+
+**Table 21.** ensemble_dev_fold_params. Showing 20 of 35 rows. *Source: `tables/ensemble_dev_fold_params.csv`*
+
+| model | gru_variant | fold | threshold | k | sticky | utility_norm | weight |
+|---|---|---|---|---|---|---|---|
+| lgbm | - | 0 | 0.0300 | 1 | 0 | 0.4263 | — |
+| lgbm | - | 1 | 0.0300 | 1 | 0 | 0.4296 | — |
+| lgbm | - | 2 | 0.0300 | 1 | 0 | 0.4245 | — |
+| lgbm | - | 3 | 0.0300 | 1 | 0 | 0.4253 | — |
+| lgbm | - | 4 | 0.0300 | 1 | 0 | 0.4296 | — |
+| gru | plain | 0 | 0.0300 | 1 | 0 | 0.3808 | — |
+| gru | plain | 1 | 0.0300 | 1 | 0 | 0.3541 | — |
+| gru | plain | 2 | 0.0300 | 1 | 0 | 0.3711 | — |
+| gru | plain | 3 | 0.0300 | 1 | 0 | 0.3642 | — |
+| gru | plain | 4 | 0.0300 | 1 | 0 | 0.3557 | — |
+| ensemble | plain | 0 | 0.0300 | 1 | 0 | 0.4336 | 0.7000 |
+| ensemble | plain | 1 | 0.0300 | 1 | 0 | 0.4331 | 0.8000 |
+| ensemble | plain | 2 | 0.0300 | 1 | 0 | 0.4296 | 0.7000 |
+| ensemble | plain | 3 | 0.0300 | 1 | 0 | 0.4302 | 0.8000 |
+| ensemble | plain | 4 | 0.0300 | 1 | 0 | 0.4344 | 0.8000 |
+| gru | h64 | 0 | 0.0300 | 1 | 0 | 0.3713 | — |
+| gru | h64 | 1 | 0.0300 | 1 | 0 | 0.3665 | — |
+| gru | h64 | 2 | 0.0300 | 1 | 0 | 0.3820 | — |
+| gru | h64 | 3 | 0.0300 | 1 | 0 | 0.3662 | — |
+| gru | h64 | 4 | 0.0300 | 1 | 0 | 0.3660 | — |
+
+**Table 22.** ensemble_dev_weights. *Source: `tables/ensemble_dev_weights.csv`*
+
+| gru_variant | weight_lgbm | nested_utility_norm | nested_auroc | nested_auprc | nested_ece | nested_patient_sensitivity | nested_median_lead_time_h | nested_false_alerts_per_patient_day | nested_policy_threshold | pooled_utility_norm | folds_selecting | pooled_selects |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| plain | 0.5000 | 0.4159 | 0.8408 | 0.1254 | 0.0010 | 0.8427 | 23.0000 | 0.4128 | 0.03,0.03,0.03,0.03,0.03 | 0.4228 | 0 | False |
+| plain | 0.6000 | 0.4239 | 0.8431 | 0.1265 | 0.0010 | 0.8500 | 22.0000 | 0.4111 | 0.03,0.03,0.03,0.03,0.03 | 0.4290 | 0 | False |
+| plain | 0.7000 | 0.4264 | 0.8444 | 0.1262 | 0.0008 | 0.8491 | 23.0000 | 0.4203 | 0.03,0.03,0.03,0.03,0.03 | 0.4319 | 2 | True |
+| plain | 0.8000 | 0.4280 | 0.8449 | 0.1247 | 0.0005 | 0.8529 | 23.0000 | 0.4338 | 0.03,0.03,0.03,0.03,0.03 | 0.4318 | 3 | False |
+| plain | 0.9000 | 0.4265 | 0.8443 | 0.1224 | 0.0003 | 0.8585 | 23.0000 | 0.4544 | 0.03,0.03,0.03,0.03,0.03 | 0.4302 | 0 | False |
+| h64 | 0.5000 | 0.4246 | 0.8438 | 0.1264 | 0.0010 | 0.8470 | 23.0000 | 0.4024 | 0.03,0.03,0.03,0.03,0.03 | 0.4293 | 0 | False |
+| h64 | 0.6000 | 0.4310 | 0.8457 | 0.1270 | 0.0009 | 0.8483 | 23.0000 | 0.4034 | 0.03,0.03,0.03,0.03,0.03 | 0.4346 | 0 | False |
+| h64 | 0.7000 | 0.4327 | 0.8466 | 0.1264 | 0.0008 | 0.8500 | 23.0000 | 0.4146 | 0.03,0.03,0.03,0.03,0.03 | 0.4362 | 5 | True |
+| h64 | 0.8000 | 0.4323 | 0.8465 | 0.1247 | 0.0006 | 0.8542 | 23.0000 | 0.4282 | 0.03,0.03,0.03,0.03,0.03 | 0.4351 | 0 | False |
+| h64 | 0.9000 | 0.4287 | 0.8451 | 0.1223 | 0.0003 | 0.8585 | 23.0000 | 0.4542 | 0.03,0.03,0.03,0.03,0.03 | 0.4318 | 0 | False |
+| top32 | 0.5000 | 0.4176 | 0.8433 | 0.1265 | 0.0009 | 0.8410 | 23.0000 | 0.4132 | 0.03,0.03,0.03,0.03,0.03 | 0.4232 | 0 | False |
+| top32 | 0.6000 | 0.4228 | 0.8453 | 0.1270 | 0.0009 | 0.8470 | 23.0000 | 0.4158 | 0.03,0.03,0.03,0.03,0.03 | 0.4277 | 0 | False |
+| top32 | 0.7000 | 0.4261 | 0.8464 | 0.1264 | 0.0008 | 0.8470 | 23.0000 | 0.4204 | 0.03,0.03,0.03,0.03,0.03 | 0.4302 | 0 | True |
+| top32 | 0.8000 | 0.4255 | 0.8464 | 0.1247 | 0.0005 | 0.8491 | 23.0000 | 0.4359 | 0.03,0.03,0.03,0.03,0.03 | 0.4298 | 4 | False |
+| top32 | 0.9000 | 0.4253 | 0.8452 | 0.1222 | 0.0003 | 0.8542 | 23.0000 | 0.4548 | 0.03,0.03,0.03,0.03,0.03 | 0.4299 | 1 | False |
+
+**Table 23.** gru_dev_comparison. *Source: `tables/gru_dev_comparison.csv`*
+
+| model | scheme | utility_norm | auroc | auprc | ece | patient_sensitivity | median_lead_time_h | false_alerts_per_patient_day | threshold | k | sticky | weight |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| lgbm | pooled | 0.4267 | 0.8451 | 0.1198 | 3.57e-18 | 0.8662 | 24.0000 | 0.4872 | 0.0300 | 1 | 0 | — |
+| lgbm | nested | 0.4196 | 0.8421 | 0.1179 | 0.0002 | 0.8546 | 23.0000 | 0.4777 | 0.0300 | 1 | 0 | — |
+| gru | pooled | 0.3633 | 0.8151 | 0.1097 | 7.81e-20 | 0.8146 | 23.0000 | 0.4526 | 0.0300 | 1 | 0 | — |
+| gru | nested | 0.3498 | 0.8069 | 0.1040 | 0.0008 | 0.8039 | 23.0000 | 0.4549 | 0.0300 | 1 | 0 | — |
+| ensemble | pooled | 0.4319 | 0.8474 | 0.1314 | 0.0008 | 0.8495 | 23.0000 | 0.4128 | 0.0300 | 1 | 0 | 0.7000 |
+| ensemble | nested | 0.4264 | 0.8444 | 0.1262 | 0.0008 | 0.8491 | 23.0000 | 0.4203 | 0.0300 | 1 | 0 | 0.7000 |
+
+**Table 24.** gru_dev_comparison_bootstrap. *Source: `tables/gru_dev_comparison_bootstrap.csv`*
+
+| comparison | diff | ci_low | ci_high | prob_better |
+|---|---|---|---|---|
+| gru - lgbm | -0.0698 | -0.0838 | -0.0563 | 0.0000 |
+| ensemble - lgbm | 0.0068 | 0.0016 | 0.0125 | 0.9950 |
+
+**Table 25.** gru_dev_comparison_fold_params. *Source: `tables/gru_dev_comparison_fold_params.csv`*
+
+| model | fold | threshold | k | sticky | utility_norm | weight |
+|---|---|---|---|---|---|---|
+| lgbm | 0 | 0.0300 | 1 | 0 | 0.4263 | — |
+| lgbm | 1 | 0.0300 | 1 | 0 | 0.4296 | — |
+| lgbm | 2 | 0.0300 | 1 | 0 | 0.4245 | — |
+| lgbm | 3 | 0.0300 | 1 | 0 | 0.4253 | — |
+| lgbm | 4 | 0.0300 | 1 | 0 | 0.4296 | — |
+| gru | 0 | 0.0300 | 1 | 0 | 0.3808 | — |
+| gru | 1 | 0.0300 | 1 | 0 | 0.3541 | — |
+| gru | 2 | 0.0300 | 1 | 0 | 0.3711 | — |
+| gru | 3 | 0.0300 | 1 | 0 | 0.3642 | — |
+| gru | 4 | 0.0300 | 1 | 0 | 0.3557 | — |
+| ensemble | 0 | 0.0300 | 1 | 0 | 0.4336 | 0.7000 |
+| ensemble | 1 | 0.0300 | 1 | 0 | 0.4329 | 0.7000 |
+| ensemble | 2 | 0.0300 | 1 | 0 | 0.4296 | 0.7000 |
+| ensemble | 3 | 0.0300 | 1 | 0 | 0.4299 | 0.7000 |
+| ensemble | 4 | 0.0300 | 1 | 0 | 0.4344 | 0.7000 |
+
+**Table 26.** policy_grid_ablation_no_deltas. Showing 5 of 594 rows. *Source: `tables/policy_grid_ablation_no_deltas.csv`*
 
 | threshold | k | sticky | utility_norm |
 |---|---|---|---|
@@ -359,7 +479,7 @@ SHAP TreeExplainer on the final model; subgroup metrics on calibrated dev OOF.
 | 0.0400 | 2 | 0 | 0.4144 |
 | 0.0700 | 1 | 0 | 0.4113 |
 
-**Table 19.** policy_grid_ablation_no_indices_scores. Showing 5 of 594 rows. *Source: `tables/policy_grid_ablation_no_indices_scores.csv`*
+**Table 27.** policy_grid_ablation_no_indices_scores. Showing 5 of 594 rows. *Source: `tables/policy_grid_ablation_no_indices_scores.csv`*
 
 | threshold | k | sticky | utility_norm |
 |---|---|---|---|
@@ -369,7 +489,7 @@ SHAP TreeExplainer on the final model; subgroup metrics on calibrated dev OOF.
 | 0.0400 | 2 | 0 | 0.4150 |
 | 0.0500 | 2 | 0 | 0.4149 |
 
-**Table 20.** policy_grid_ablation_no_missingness. Showing 5 of 594 rows. *Source: `tables/policy_grid_ablation_no_missingness.csv`*
+**Table 28.** policy_grid_ablation_no_missingness. Showing 5 of 594 rows. *Source: `tables/policy_grid_ablation_no_missingness.csv`*
 
 | threshold | k | sticky | utility_norm |
 |---|---|---|---|
@@ -379,7 +499,7 @@ SHAP TreeExplainer on the final model; subgroup metrics on calibrated dev OOF.
 | 0.0400 | 2 | 0 | 0.3950 |
 | 0.0400 | 1 | 0 | 0.3936 |
 
-**Table 21.** policy_grid_ablation_no_rolling. Showing 5 of 594 rows. *Source: `tables/policy_grid_ablation_no_rolling.csv`*
+**Table 29.** policy_grid_ablation_no_rolling. Showing 5 of 594 rows. *Source: `tables/policy_grid_ablation_no_rolling.csv`*
 
 | threshold | k | sticky | utility_norm |
 |---|---|---|---|
@@ -389,7 +509,7 @@ SHAP TreeExplainer on the final model; subgroup metrics on calibrated dev OOF.
 | 0.0800 | 1 | 6 | 0.4121 |
 | 0.0700 | 1 | 6 | 0.4119 |
 
-**Table 22.** policy_grid_lgbm_default. Showing 5 of 594 rows. *Source: `tables/policy_grid_lgbm_default.csv`*
+**Table 30.** policy_grid_lgbm_default. Showing 5 of 594 rows. *Source: `tables/policy_grid_lgbm_default.csv`*
 
 | threshold | k | sticky | utility_norm |
 |---|---|---|---|
@@ -399,7 +519,7 @@ SHAP TreeExplainer on the final model; subgroup metrics on calibrated dev OOF.
 | 0.1300 | 1 | 6 | 0.4133 |
 | 0.1200 | 1 | 6 | 0.4130 |
 
-**Table 23.** policy_grid_lgbm_tuned. Showing 5 of 594 rows. *Source: `tables/policy_grid_lgbm_tuned.csv`*
+**Table 31.** policy_grid_lgbm_tuned. Showing 5 of 594 rows. *Source: `tables/policy_grid_lgbm_tuned.csv`*
 
 | threshold | k | sticky | utility_norm |
 |---|---|---|---|

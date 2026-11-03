@@ -1,8 +1,8 @@
 # STATUS — SepsisSentinel
-Last updated: 2026-11-02 by Claude Opus 5.5
+Last updated: 2026-11-03 by Claude Opus 5.5
 
 ## Current task
-Phase 6 (GRU + ensemble) run on dev folds only, 2026-11-02: GRU alone loses to LightGBM; LightGBM+GRU ensemble gains +0.0068 nested dev utility. Not served, lockbox not re-evaluated (see Phase 6 notes). Phases 7 and 8 complete. Docker stack built and verified (both containers healthy); QA checklist 10/10 passed on the Docker deployment; slides exported to PPTX/PDF. Human to-do: record the 60-s fallback demo video.
+Phase 9 (branch `feature/ensemble-and-ui`, 2026-11-03): **the served model is a LightGBM + GRU ensemble chosen on development data; its lockbox score has not been measured; the 0.4270 test result belongs to the LightGBM component alone.** Nested dev utility: LightGBM 0.4196 → ensemble (GRU hidden 64, w = 0.7) 0.4327, Δ +0.0131 [+0.0072, +0.0190]. Backend serves `MODEL_KIND=ensemble` (default) or `lgbm`; Docker 1.1 images healthy; UI reworked after an impeccable critique (24/40) + audit (12/20); QA 10/10 on Docker; all docs and slides updated. Human to-do: record the 60-s fallback demo video; review and merge the PR.
 
 ## Phase 9 — ensemble served + UI (branch `feature/ensemble-and-ui`, started 2026-11-03)
 Search space fixed **before** any new result was produced (dev data only, lockbox untouched):
@@ -28,7 +28,7 @@ Paired bootstrap (1,000 patient resamples, nested alerts): ensemble(h64) − Lig
 Caveat: the variant was picked as the best of three on the same dev folds, so its +0.0072 margin carries some selection optimism even though the rule was fixed in advance.
 
 Final ensemble (`models/ensemble_final/`): GRU hidden 64 trained on all 32,268 dev patients for 5 epochs (fold best epochs 4, 3, 2, 4, 4), focal α 0.5; GRU isotonic fit on its dev OOF; LightGBM keeps `models/final/calibrator.joblib` (identical to an isotonic refit on the same OOF, max gap 0.0); risk = 0.7 × LightGBM + 0.3 × GRU; policy τ = 0.03, k = 1, sticky = 0 (search_policy on the blended calibrated dev OOF; in-sample dev utility 0.4362). **Lockbox score: not measured.**
-Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (max |Δ| 0.0); ensemble online vs batch max |Δrisk| 4.3e-7 (≤ 1e-5). Recomputed ensemble bed outcomes: 6 early, 2 flagged > 12 h early, 2 missed/late, 8 quiet, 6 with a false alert (LightGBM: 8 / 0 / 2 / 10 / 4 — the beds were originally picked with LightGBM's alerts).
+Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (max |Δ| 0.0); ensemble online vs batch max |Δrisk| 4.3e-7 (≤ 1e-5). Recomputed ensemble bed outcomes: 6 early (4–12 h), 2 flagged outside that window (Bed 16 at 14 h, Bed 13 at 2 h before onset), 2 missed/late, 8 quiet, 6 with a false alert (Beds 02 and 17 newly) (LightGBM: 8 / 0 / 2 / 10 / 4 — the beds were originally picked with LightGBM's alerts).
 
 ## Task board
 | Task | Status | Notes |
@@ -71,6 +71,12 @@ Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (m
 | P8.T4 demo script | DONE | `reports/demo_script.md` (3½ min; Bed 03 alerts h16, onset h22; Bed 07 miss) |
 | P8.T5 viva guide | DONE | `reports/viva_qa.md` (27 Q&A) |
 | P8.T6 README | DONE | GitHub-ready README with results, architecture, Docker and reproduction |
+| P9.1 ensemble selection (dev) | DONE | Pre-registered grid w ∈ {0.5…0.9} × GRU {plain, h64, top32}; nested 5-fold; h64 adopted (Δ vs plain +0.0072 [+0.0033, +0.0109]); `reports/tables/ensemble_dev_*` |
+| P9.1 final ensemble | DONE | GRU h64, 5 epochs on all 32,268 dev patients; GRU isotonic; w 0.7; policy τ 0.03/k 1/s 0; `models/ensemble_final/` |
+| P9.1 inference + demo | DONE | CPU ensemble path in `inference.py`; same 24 beds rescored (LightGBM Δ 0.0; ensemble online vs batch 4.3e-7) |
+| P9.2 backend + Docker | DONE | `MODEL_KIND`; `/api/metrics` → `lockbox_test` + `dev_cv`; torch 2.6.0+cpu image 2.16 GB (P7: 1.36 GB); predict parity in Docker 0.0 |
+| P9.3 UI | DONE | impeccable critique + audit → typeset/layout/clarify/polish; model badge; dev band; LightGBM-reasons note; detector 0 findings; QA 10/10 |
+| P9.4 docs | DONE | README, model card, report, slides (15, PPTX/PDF), demo script, viva (Q28–Q30), presentation guide, `reports/ui_review.md` |
 
 ## Key numbers (fill as they appear)
 - Patients / rows / septic / % positive rows: 40,336 / 1,552,210 / 2,932 (7.27%) / 1.80%
@@ -149,10 +155,20 @@ Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (m
   - Not adopted: per §P6.T3 the API serves LightGBM regardless, `models/final/` is unchanged, and no test-set claim is made for the ensemble.
   - Corrected the old P6 board note ("LightGBM achieves superior calibrated utility"), which was written without a GRU run.
 
+- **Phase 9 (2026-11-03, Claude) — notes:**
+  - Bootstrap of the plain-GRU ensemble under the widened grid: ensemble(plain) − LightGBM +0.0058 [+0.0011, +0.0106] (the P6 grid gave +0.0068). Ensemble(top32) − LightGBM +0.0056 [+0.0017, +0.0096].
+  - `ensemble.json` stores weight 0.7, policy τ 0.03 / k 1 / sticky 0, 5 GRU epochs (fold best epochs 4, 3, 2, 4, 4), focal α 0.5, the GRU config and the git sha of the code that trained it (a612d30). Nested dev metrics and in-sample pooled metrics (0.4362) are in `dev_metrics.json` and `reports/tables/ensemble_dev_final.csv`.
+  - Final GRU trained on the GPU (≈5 s/epoch); served on CPU in float32 (`torch.load(..., map_location="cpu", weights_only=True)`). Stored demo risks were computed on Windows; the Linux container reproduces them exactly (max |Δ| 0.0).
+  - **Latency, `POST /api/predict`, 70-hour stay (P7 recorded ≈315 ms for LightGBM):** Docker (Linux, HTTP, n = 40, median): LightGBM 169 ms → ensemble 183 ms (+14 ms). In-process on the laptop, interleaved (n = 40): 242 → 261 ms (+18 ms). Plain HTTP runs on Windows were noisy (271–353 ms for the same code) and are not used for the comparison. On Windows, `localhost` added ~2 s per request (IPv6 tried first), so `backend/bench_predict.py` uses 127.0.0.1.
+  - Backend image: torch 2.6.0+cpu from the PyTorch CPU index (no CUDA libraries); torch headers, `protoc` and bundled `tests/` directories removed in the install layer (2.45 GB → 2.16 GB).
+  - UI: the before state was the P7 Docker image (1.0) that Docker Desktop had auto-started on :8000/:8080. Critique and audit ran as isolated sub-agents; findings and the changes made are in `reports/ui_review.md`; before/after screenshots in `reports/screenshots/before/` and `reports/screenshots/`. Not re-scored after the changes (the detector was re-run: 3 findings → 0).
+  - Demo cohort outcome labels are per model (`outcome` = LightGBM, `outcome_ensemble`); the API returns the served model's label.
+  - `models/ensemble_final/` (0.3 MB) is tracked in git like `models/final/`; the variant fold models in `models/gru_h64/`, `models/gru_top32/` are not (gitignored, reproducible with `train_gru`).
+
 ## Blockers / questions for the human
 - Record the 60-s fallback screen recording for the demo (see `reports/demo_script.md`).
-- Tests: 72/72 pass (58 `tests/` incl. 5 GRU tests + 14 `backend/tests/`); ruff clean on src, tests, backend.
-- Decide whether to commit Phase 6 (GRU code + dev tables) and whether to mention the ensemble in the report/slides as a dev-only finding.
+- Tests: 93/93 pass (63 `tests/` incl. 5 GRU + 5 ensemble tests; 30 `backend/tests/`, every API test run for both model kinds); ruff clean on src, tests, backend.
+- Review PR `feature/ensemble-and-ui`. If you prefer to serve the lockbox-tested model, set `MODEL_KIND=lgbm` (nothing else changes).
 
 ## Experiment log
 | Date | Run | Change | Key metric | Kept? |
@@ -177,3 +193,5 @@ Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (m
 | 2026-10-19 | P7.T1 | Demo cohort (24 beds) | online vs batch max diff 0.0 | Yes |
 | 2026-10-18 | P5.T6 | Single Lockbox Test (8,068 pts) | **Utility = 0.4270 [0.3929, 0.4604], AUROC = 0.8475, Sens = 87.54%, Lead = 29.0h** | **FINAL** |
 | 2026-11-02 | P6.T1–T3 | GRU (5-fold, dev) + LightGBM/GRU ensemble | Nested dev utility LGBM 0.4196, GRU 0.3498, ensemble 0.4264 (Δ +0.0068 [+0.0016, +0.0125]) | Dev only |
+| 2026-11-03 | P9.1 | Widened w grid {0.5…0.9}, GRU variants h64 / top32 (nested) | Ensemble: plain 0.4255, **h64 0.4327**, top32 0.4252; LGBM 0.4196 | h64 served |
+| 2026-11-03 | P9.2 | `/api/predict` latency, 70-h stay | Docker: LGBM 169 ms → ensemble 183 ms; in-process paired 242 → 261 ms | – |

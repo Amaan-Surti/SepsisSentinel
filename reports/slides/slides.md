@@ -15,7 +15,8 @@ style: |
   section.lead { background: #10242B; color: #E8EEEC; } section.lead h1, section.lead h2 { color: #fff; } section.lead strong { color: #5FC2BF; } section.lead blockquote { color: #A9BAB8; }
   section.lead h1 { font-size: 72px; }
   footer { color: #5B6F76; font-size: 14px; }
-footer: "SepsisSentinel · Amaan Surti · DSML Final Project · retrospective research demo, not a medical device"
+  section.dev { background: #EEF1F8; border: 6px dashed #B9C3DC; } section.dev h2, section.dev strong { color: #3E4F7A; } section.dev th { background: #3E4F7A; }
+footer: "SepsisSentinel · Amaan Surti · DSML Final Project · Decision support on retrospective data. Not a medical device."
 ---
 
 <!-- _class: lead -->
@@ -31,7 +32,7 @@ SPEAKER NOTES (20 s)
 Good morning. SepsisSentinel is a real-time early-warning system for sepsis in the ICU.
 I'll show what it achieves on an untouched test set, where it breaks when it moves to a new hospital,
 and a live dashboard that replays real test patients.
-Every number on these slides comes straight from the repo's results tables; the test set was opened once.
+Every number on these slides comes straight from the repo's results tables; the test set was opened once, for the LightGBM model.
 -->
 
 ---
@@ -137,11 +138,11 @@ and every false alarm costs a little. We also report the clinical numbers a ward
 
 <!-- _class: lead -->
 
-## Lockbox test: 8,068 patients, evaluated once
+## Lockbox test (LightGBM): 8,068 patients, evaluated once
 
 # 0.4270
 
-**normalized utility** (95% CI 0.3929 – 0.4604), the same as dev out-of-fold (0.4267)
+**normalized utility** of the LightGBM model (95% CI 0.3929 – 0.4604), the same as its dev out-of-fold estimate (0.4267)
 
 | AUROC | Sensitivity | Median lead | False alerts / patient-day | ECE |
 |---|---|---|---|---|
@@ -158,7 +159,7 @@ TAKEAWAY: strong, honest, reproducible.
 
 ---
 
-## Results vs baselines (same test set)
+## Results vs baselines (same test set, LightGBM)
 
 | Model | Utility | AUROC | Sensitivity | False alerts/day |
 |---|---|---|---|---|
@@ -166,7 +167,7 @@ TAKEAWAY: strong, honest, reproducible.
 | B1 SIRS ≥ 2 | 0.0507 | 0.615 | 82.76% | *1.53* |
 | B2 qSOFA ≥ 2 | 0.0122 | 0.516 | *25.94%* | 0.45 |
 | B3 logistic regression | 0.2438 | 0.737 | 67.06% | 0.25 |
-| **SepsisSentinel** | **0.4270** | **0.848** | **87.54%** | 0.53 |
+| **SepsisSentinel LightGBM** | **0.4270** | **0.848** | **87.54%** | 0.53 |
 
 **+75%** utility over logistic regression · **8.4×** SIRS · AUPRC 0.137 = **7.6×** chance (1.79%)
 
@@ -230,24 +231,52 @@ to hospital C in the Challenge and to commercial sepsis models in the literature
 
 ---
 
+<!-- _class: dev -->
+
+## Development comparison (nested 5-fold CV) — not lockbox
+
+| 32,268 dev patients, nested | Utility | AUROC | Sens. | FA/day |
+|---|---|---|---|---|
+| LightGBM | 0.4196 | 0.842 | 85.5% | 0.48 |
+| GRU, unidirectional (hidden 64) | 0.3529 | 0.812 | 78.1% | 0.40 |
+| **Ensemble 0.7 × LightGBM + 0.3 × GRU** | **0.4327** | **0.847** | **85.0%** | **0.41** |
+
+- Paired patient bootstrap: ensemble − LightGBM **+0.0131 [+0.0072, +0.0190]**
+- Search fixed in advance: w ∈ {0.5 … 0.9} × 3 GRU variants; each fold's weight and policy fit on the other 4 folds; all 15 configurations reported
+- **Served model = this ensemble. Its lockbox score has not been measured; 0.4270 belongs to LightGBM alone.**
+
+<!--
+LAYOUT: dashed slate border marks development-only numbers; never place next to the lockbox slide's numbers.
+NOTES (50 s)
+A recurrent network on its own is clearly worse than the trees, 0.35 against 0.42 on development data.
+But averaging the two helps: 0.433, with fewer false alarms at the same sensitivity, and the bootstrap
+interval stays above zero. We fixed the search space before running it and report every configuration.
+We did not test the ensemble on the lockbox: that set was used once, for LightGBM, and opening it again to
+check a model chosen afterwards would turn it into a validation set. So the app serves the ensemble, and the
+test-set claim stays with LightGBM. The app can switch back with MODEL_KIND=lgbm.
+-->
+
+---
+
 <!-- _class: dense -->
 
 ## Product: from model to bedside demo
 
 ![bg right:55% fit](../screenshots/patient.jpg)
 
-- **FastAPI**: model, calibrator, policy, SHAP loaded once
-- **React + TypeScript** dashboard: replay clock, threshold slider, show-truth toggle
-- One code path for training and online `/api/predict` (diff = 0)
+- **FastAPI** serves the **ensemble** (default) or LightGBM (`MODEL_KIND`); GRU on CPU
+- **React + TypeScript** dashboard: model badge, replay clock, threshold slider, show-truth toggle; projector-sized after an impeccable critique/audit
+- One code path for training and online `/api/predict` (diff < 10⁻⁶; ensemble online vs batch 4 × 10⁻⁷)
 - **Docker Compose**: API :8000 + UI :8080
-- 67 automated tests
+- 93 automated tests, incl. causality of the full ensemble path
 
 <!--
 LAYOUT: real screenshot of a demo patient (Bed 16) on the right ("one patient's stay" slide uses this).
 NOTES (40 s)
-The dashboard replays 24 real test patients hour by hour. Bed 16 alerts at hour 30; turning on ground truth
-shows onset at hour 42, 12 hours later. The reasons panel says lactate was drawn two hours ago and she has a fever.
-The demo deliberately includes 2 missed septic patients and 4 false alarms.
+The dashboard replays 24 real test patients hour by hour. Under the ensemble Bed 16 first alerts at hour 28; turning on
+ground truth shows onset at hour 42. The reasons panel (from the LightGBM half) says lactate was drawn two hours ago and
+she has a fever. The demo deliberately includes missed septic patients and false alarms; the beds were picked with
+LightGBM and were not reselected for the ensemble.
 -->
 
 ---
@@ -256,11 +285,11 @@ The demo deliberately includes 2 missed septic patients and 4 false alarms.
 
 ## Live demo (3 minutes)
 
-1. Ward at hour 0 → **Play** (2×)
+1. Ward at hour 0 (badge: **Ensemble**) → **Play** (Space, 2×)
 2. Pause when **Bed 03** turns *Alert* (hour 16), the first septic bed to alert
 3. Open the patient → read **"Why this risk"**
 4. Toggle **Show ground truth** → onset at hour 22, 6 h after the alert
-5. Show a miss (**Bed 07**), then move the **threshold slider** → more / fewer alerts; Model page trade-off
+5. Show a miss (**Bed 07**), move the **threshold slider** → more / fewer alerts; Model page: lockbox band vs development band
 6. Close on the disclaimer
 
 > Fallback: 60-s screen recording in case the laptop fails.
@@ -279,7 +308,8 @@ NOTES: follow reports/demo_script.md exactly. If the backend fails, switch to th
 - Lead time inflated by persistent early alerts; utility gives no credit before t−12
 - SHAP explains the **model**, not causes; timing features reflect clinician behaviour
 - Subgroups underpowered (weakest: age ≥ 80, sensitivity 80.3%)
-- **Not a medical device**; GRU comparison (optional phase) not run
+- Served ensemble: **no lockbox estimate**; its gain is development-only, reasons cover the LightGBM half
+- **Not a medical device**
 
 <!--
 NOTES (45 s)
@@ -296,7 +326,8 @@ a silent-mode trial, workflow design and monitoring.
 2. It beats SIRS, qSOFA and logistic regression by a wide margin at a known alarm cost (**0.53/day**)
 3. **Missingness carries signal**, and makes the model partly hospital-specific
 4. Moving hospitals costs up to **33%** utility, mostly through the alert threshold
-5. Validation at your own hospital is where it starts, not where it ends
+5. A causal GRU helps only as a partner: ensemble **+0.013** dev utility (nested CV), served but not lockbox-tested
+6. Validation at your own hospital is where it starts, not where it ends
 
 **Thank you. Questions?**
 
