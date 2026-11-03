@@ -9,6 +9,7 @@ import { EvidencePage } from "./pages/EvidencePage";
 import { TourPage } from "./pages/TourPage";
 import { WardPage } from "./pages/WardPage";
 import { ReplayProvider, useReplay } from "./state/ReplayContext";
+import "./fonts.css";
 import "./styles.css";
 
 /** Old P7–P9 links (/patient/:id) keep working. */

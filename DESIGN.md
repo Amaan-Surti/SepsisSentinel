@@ -343,4 +343,4 @@ Recharts, colours read live from the CSS tokens. Served risk is a 3.5px line in 
 - **Don't** mount unfocused items in label white, and don't use brass or gold for the current tour stop; it would collide with ochre Watch.
 - **Don't** add letter-spaced eyebrows or kickers above headings; the only run-in key is WHAT HAPPENED.
 
-<!-- Open item: fonts currently load at runtime from Google Fonts (index.html). Self-hosting the Atkinson Hyperlegible Next and Mono files for offline exhibition use is pending the owner's approval to download them. -->
+<!-- Fonts are self-hosted from frontend/public/fonts (variable woff2, latin + latin-ext, SIL OFL 1.1 licences beside them), declared in frontend/src/fonts.css with font-display: swap; the two latin files are preloaded in index.html. No runtime font requests leave the machine. -->

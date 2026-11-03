@@ -433,8 +433,9 @@
         "value": "max-height: 760px"
       }
     ],
-    "openItems": [
-      "Fonts load at runtime from Google Fonts (frontend/index.html); self-hosting Atkinson Hyperlegible Next and Mono for offline exhibition use is pending the owner's approval to download the font files."
+    "openItems": [],
+    "resolvedItems": [
+      "Fonts are self-hosted (2026-11-04): Atkinson Hyperlegible Next and Mono variable woff2 files (latin + latin-ext, 81 KB) with their SIL OFL 1.1 licences in `frontend/public/fonts/`, declared in `frontend/src/fonts.css`; no external requests. Verified in headless Chrome with every host except 127.0.0.1 unreachable: both families load from /fonts/."
     ]
   },
   "components": [

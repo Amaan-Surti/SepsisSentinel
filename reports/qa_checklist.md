@@ -29,7 +29,7 @@ How to run: `docker compose up --build` → http://localhost:8080 (or terminal 1
 | Status never by colour alone | Shape + word everywhere (triangle Alert, dot Watch, bar OK, "Discharged after hour N"); flowsheet status uses words | Pass |
 | Contrast | Measured in the browser: every text pair ≥ 5.98:1 on wall and label grounds (dimmed strip ≈ 5:1) | Pass |
 | `POST /api/predict` in Docker | max \|Δ\| vs stored ensemble predictions 0.0, alerts equal | Pass |
-| impeccable detector / finish review | `impeccable detect` 0 findings; finish review: 7 of 8 material fixes resolved over two rounds; the remaining one (self-hosted fonts) waits for the owner's approval | Pass with one open item |
+| impeccable detector / finish review | `impeccable detect` 0 findings; finish review: all 8 material fixes resolved (the eighth, self-hosted fonts, after the owner approved the download) | Pass |
 
 ## Issues found and fixed during this QA
 
@@ -37,7 +37,7 @@ How to run: `docker compose up --build` → http://localhost:8080 (or terminal 1
 
 ## Known caveats
 
-- Fonts (Atkinson Hyperlegible Next and Mono) load from Google Fonts; without internet the page falls back to Arial until they are self-hosted.
+- Fonts are self-hosted (`frontend/public/fonts/`, SIL OFL 1.1); with every host but 127.0.0.1 blocked, both families load from `/fonts/` and the page makes no external request.
 - Recharts 2.12.7 logs React `defaultProps` deprecation warnings in the dev console (library issue at the pinned version; no functional effect).
 - `threshold_curve.json` is the LightGBM development curve and starts at τ = 0.05; the policy τ = 0.03 is marked separately.
 - The threshold slider spans 1–50% (not the plan's 5–95%) because the policy τ = 0.03 lies below 5%.

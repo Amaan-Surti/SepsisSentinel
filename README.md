@@ -126,7 +126,7 @@ flowchart LR
 
 ## Quick start: run the dashboard
 
-The frozen model and demo cohort are in the repo, so the raw data is **not** needed to run the demo.
+The frozen model and demo cohort are in the repo, so the raw data is **not** needed to run the demo. Once built, the dashboard runs fully offline: the Atkinson Hyperlegible fonts are self-hosted in `frontend/public/fonts/` (SIL OFL 1.1).
 
 ### Option A: Docker (recommended)
 
