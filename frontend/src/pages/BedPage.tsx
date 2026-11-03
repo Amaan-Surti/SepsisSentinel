@@ -8,7 +8,7 @@ import { RiskChart } from "../components/RiskChart";
 import { bedNumber, levelAt, Status, StatusChip } from "../components/Status";
 import { useReplay } from "../state/ReplayContext";
 import { usePageTitle } from "../usePageTitle";
-import { ALL_VARIABLES, fmtValue, GROUPS } from "../variables";
+import { ALL_VARIABLES, fmtNormal, fmtValue, GROUPS } from "../variables";
 import { useWard } from "./WardPage";
 
 const UNIT_LONG: Record<number, string> = { 1: "Medical ICU", 2: "Surgical ICU" };
@@ -227,6 +227,7 @@ function MeasurementsTab({ p, showTruth }: { p: PatientDetail; showTruth: boolea
                     <tr key={v.key}>
                       <th scope="row">
                         {v.label} {v.unit && <span className="unit">{v.unit}</span>}
+                        <span className="flow-normal">normal {fmtNormal(v)}</span>
                       </th>
                       {s.map((x, i) => {
                         if (x != null) lastSeen = x;

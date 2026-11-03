@@ -113,7 +113,7 @@ button.link { border: 0; min-height: 0; padding: 0 2px; text-decoration: underli
 .state { padding: 64px 28px; text-align: center; font-size: var(--t3); color: var(--wall-muted); }
 .state.error { color: var(--alert-on-wall); font-weight: 700; }
 .state.error button { margin-left: 12px; }
-.footer { color: var(--wall-muted); font-size: var(--t1); text-align: center; padding: 20px 28px 84px; border-top: 1px solid var(--wall-line); }
+.footer { color: var(--wall-muted); font-size: var(--t1); text-align: center; padding: 20px 28px 28px; border-top: 1px solid var(--wall-line); }
 
 /* ---------- status: shape + word ---------- */
 .status { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; white-space: nowrap; }
@@ -380,3 +380,20 @@ details[open] summary { margin-bottom: 12px; }
   .tabs button { min-height: 38px; }
   .overview .sub { display: none; }
 }
+.mini-plot { position: relative; }
+.mini svg { cursor: crosshair; }
+.mini .nr { fill: var(--ink); opacity: 0.07; }
+.mini .hv { stroke: var(--ink-muted); stroke-width: 1; }
+.mini .pt.hot { fill: var(--alert-ink); }
+.mini-val.out { color: var(--alert-ink); }
+.mini-normal { color: var(--ink-muted); }
+.mini-tip {
+  position: absolute; top: -6px; z-index: 5; pointer-events: none; white-space: nowrap;
+  background: #fff; border: 1px solid #ccc; padding: 6px 9px; font-size: var(--t1); line-height: 1.35;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+}
+.mini-tip-h { color: var(--ink-muted); }
+.mini-tip-v { font-weight: 800; font-variant-numeric: tabular-nums; }
+.mini-tip-n { color: var(--ink-muted); }
+.mini-tip-n.out { color: var(--alert-ink); font-weight: 700; }
+.flow-normal { display: block; font-weight: 400; font-size: var(--t1); color: var(--ink-muted); }

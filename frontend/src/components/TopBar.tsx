@@ -24,7 +24,6 @@ export function TopBar() {
           <NavLink to="/" className={({ isActive }) => (isActive || pathname.startsWith("/bed/") ? "active" : "")} end>
             Ward
           </NavLink>
-          <NavLink to="/tour">Tour</NavLink>
           <NavLink to="/evidence">Evidence</NavLink>
         </nav>
       </div>
