@@ -211,103 +211,81 @@ Removing the "was it measured / how long ago" features drops utility from 0.4262
 
 ## 6. Live demo script: what's on screen and what's happening behind it
 
-**Setup:** http://localhost:8080 (Docker), browser at 100% zoom, replay at hour 0, speed 2×, threshold 3.0%, ground truth **off**.
+**Setup:** http://localhost:8080 (Docker), browser at 100% zoom, replay at hour 0, speed 2×, threshold 3.0%, ground truth **off**. The UI is a gallery: the **ward is a wall of numbered exhibits**; opening a bed **mounts it on a white object label**, and the rest of the wall dims. The numbered **tour rail** along the bottom (stops 1–6) is your route; anyone who walks up mid-story can see which stop you are on.
 
-### 6.1 The frame (top of every page)
+### 6.1 The frame (top and bottom of every page)
 
 | On screen | What it means | Behind the scenes |
 |---|---|---|
-| Dark banner "Decision support on retrospective data. Not a medical device." | Safety disclaimer, part of the sticky header | Always rendered; also returned by `/api/config` |
+| Dark strip "Decision support on retrospective data. Not a medical device." | Safety disclaimer, part of the sticky header | Always rendered; also returned by `/api/config` |
 | **Ensemble** badge next to the name | Which model is served (LightGBM + GRU ensemble, or LightGBM with `MODEL_KIND=lgbm`) | From `/api/config` (`model_kind`, `model_version`) |
-| **ICU HOUR 0 / 69** | The replay clock. All 24 patients are shown as if they were admitted at the same moment; 69 is the longest stay − 1 | The clock lives in the browser (`ReplayContext.tsx`); the backend is stateless and just answers "what did the world look like at hour *t*?" |
-| **Reset / ‹ 1 h / Play / 1 h ›** | Move through time; keyboard: Space plays/pauses, ← / → step one hour | Every change of *t* triggers a fresh `GET /api/ward?t=…`; `/?t=16&truth=1` deep-links to an hour |
-| **Speed** 1× / 2× / 5× | 1 s, 0.5 s or 0.2 s per simulated hour | Browser timer |
-| **Threshold slider** (1%–50%) | The alert threshold τ; starts at the policy value 3% | Debounced 200 ms, then sent as `?threshold=`; the backend **recomputes alerts** for all beds at that threshold |
-| "reset to policy 3.0%" link | Appears when you move the slider; snaps back to the trained policy | – |
-| **Show ground truth (demo)** | Reveals the real sepsis onset hour (a teaching feature; a real system wouldn't have it) | Sends `show_truth=true`; only then does the API include onset and outcome |
+| **Ward · Tour · Evidence** | The three rooms | React Router routes `/`, `/tour`, `/evidence`; a bed is `/bed/<id>` |
+| **ICU hour 0 / 69** | The replay clock. All 24 patients are shown as if they were admitted at the same moment; 69 is the longest stay − 1 | The clock lives in the browser (`ReplayContext.tsx`); the backend is stateless and answers "what did the world look like at hour *t*?" |
+| **Reset / ‹ 1 h / Play / 1 h ›**, **Speed** | Move through time; keyboard: Space plays/pauses, ← / → step one hour | Every change of *t* triggers a fresh request; `/?t=16&truth=1` deep-links to an hour |
+| **Alert threshold** slider (1%–50%) + "reset to policy 3.0%" | The alert threshold τ; starts at the policy value 3% | Debounced 200 ms, then sent as `?threshold=`; the backend **recomputes alerts** for all beds at that threshold |
+| **Show ground truth (demo)** | Reveals the recorded sepsis onset (a teaching feature; a real system wouldn't have it) | Sends `show_truth=true`; only then does the API include onset and outcome |
+| **Tour rail** (bottom): 1 A false alarm · 2 Caught early · 3 Caught very early · 4 Missed · 5 The threshold · 6 The evidence | Click a stop: it pauses, sets the hour, ground truth and policy threshold, and opens the right screen. The current stop is shown "mounted" (white) | `src/tour.ts` holds only bed, hour and route; every sentence about a bed is computed from the API |
 
-### 6.2 Ward page (`/`): "the nurse's station view"
+### 6.2 The ward wall (`/`): "the nurse's station view"
 
 **Say:** "These are 24 real ICU patients from the sealed test set. The model never trained on any of them. I'm replaying their stays hour by hour."
 
 | Column / element | Meaning |
 |---|---|
-| Summary chips (Alert / Watch / OK / Discharged) | Ward overview at this hour; each chip shows its shape, count and rule (e.g. "risk ≥ 3.0%") |
-| **Bed** | Shuffled bed number (septic patients aren't grouped) |
-| Age / Sex, Unit | Demographics; MICU = medical ICU, SICU = surgical ICU, "Unknown" = not recorded |
-| **Risk bar + %** | Calibrated sepsis probability right now (2 decimals). The vertical tick marks the threshold; the bar is orange/amber/teal by level |
+| Summary (Alert / Watch / OK / Discharged) | Shape, count, word and rule (e.g. "risk ≥ 3.0%") |
+| **Bed** number | The exhibit number, identical on every screen |
+| **Status** | **Alert** (triangle, risk ≥ threshold), **Watch** (dot, risk ≥ half the threshold), **OK** (bar), **Discharged after hour N**. Always shape + word |
+| Age / sex · unit | MICU = medical ICU, SICU = surgical ICU, "—" = not recorded |
+| **Calibrated risk** bar + % | Probability right now (2 decimals); the white tick marks the threshold |
 | **Last 12 h** | Sparkline of the last 12 hours of risk; dashed line = threshold |
-| HR bpm, MAP mmHg, Temp °C, WBC ×10³/µL | Last recorded heart rate, mean arterial pressure, temperature, white cell count ("—" = not measured yet) |
-| **Status** | **Alert** (triangle, risk ≥ threshold), **Watch** (dot, risk ≥ half the threshold), **OK** (bar). Always shape + word, never colour alone (accessibility) |
+| HR, MAP, Temp, Resp, SpO₂, WBC | Last recorded values ("—" = not measured yet) |
 | **In alert** | How long the alert has been continuously on |
-| Grey rows at the bottom | Discharged patients: "Discharged after hour N" |
 
-**What to point out at hour 0:**
-- Bed 15 is already in **Alert**, and never develops sepsis (in LightGBM mode Bed 20 alerts too). "That's a false alarm, and I've deliberately kept it in the demo. The beds were picked to include early catches, misses, quiet patients and false alarms; under the ensemble they come out as 6 early catches, 2 flagged outside the 4–12 h window, 2 misses, 8 quiet and 6 with a false alarm. I'm showing you the real behaviour, not a highlight reel."
+**Start the tour: stop 1, A false alarm.** Bed 15 is in **Alert** at hour 0 and never develops sepsis (in LightGBM mode Bed 20 alerts too). "That's a false alarm, and I've kept it in on purpose. Under the ensemble these beds come out as 6 early catches, 2 flagged outside the 4–12 h window, 2 misses, 8 quiet and 6 with a false alarm. I'm showing you the real behaviour, not a highlight reel."
 
-**Why are risks so small (1–4%)?** "Because they're *calibrated*. Only 1.8% of hours are septic, so a 3.5% risk is genuinely high. An uncalibrated model would show scary-looking 60% numbers that mean nothing."
+**Why are risks so small (1–4%)?** "Because they're *calibrated*. Only 1.8% of hours are septic, so a 3.5% risk is genuinely high."
 
-**Behind the scenes (per request, ~14 ms):**
-1. For each bed, the backend computes `hour = min(t, stay − 1)` and looks up the **pre-computed calibrated risk** for that patient-hour (scored once by the served model with the same code as `/api/predict`).
-2. It re-applies the **alert policy at the requested threshold** to the whole risk series, results cached per threshold.
-3. It works out Alert/Watch/OK, the last 12 risks, last vitals, and how long the alert has been on.
-4. It sorts active beds by risk, discharged last, and returns JSON.
+**Behind the scenes (per request, ~14 ms):** the backend computes `hour = min(t, stay − 1)` for each bed, looks up the **pre-computed calibrated risk** (scored once by the served model with the same code as `/api/predict`), re-applies the **alert policy at the requested threshold**, works out the level, trend, last vitals and alert duration, and returns the beds sorted by risk, discharged last.
 
-**Click Play.** Narrate: "Each tick is one hour. New vitals arrive, features update, risks move." Bed 06 flickers in and out of alert from hour 2 (another false alarm).
+### 6.3 A bed, mounted on its label (`/bed/:id`): "why is the model worried?"
 
-**Pause at hour 16:** **Bed 03** turns **Alert**. It's the first *septic* patient to alert.
-
-### 6.3 Patient page (`/patient/:id`): "why is the model worried?"
-
-Click **Bed 03**.
+**Stop 2, Caught early** opens **Bed 03** at hour 16 with ground truth on.
 
 | Element | Meaning |
 |---|---|
-| Header: age/sex, unit, ICU hour "16 of 24", **Risk now 3.64%** (3.55% in LightGBM mode), **First alert hour 16**, status chip | Snapshot |
-| **Calibrated sepsis risk chart** | Teal line = risk over time; dashed orange line = threshold; **orange shading** = hours in alert. The x-axis covers the whole stay, so the chart grows as time passes |
-| **Why this risk** panel | A note says the reasons come from the LightGBM part of the ensemble. Top 5 SHAP factors pushing risk up *at this hour*: "FiO2 last measured 0h ago", "Temperature 38.4", "Temperature max over 6h: 38.4", "Temperature max over 12h: 38.4", "Unit: unknown ICU". Bar length = size of contribution |
-| Caveat line | "SHAP explains the model's behaviour, not the patient's physiology" |
-| **Vital signs** (5 charts) | HR, MAP, respiratory rate, temperature, SpO₂, all on the same time axis as the risk chart |
-| **Laboratory values** (4 dot plots) | Lactate, WBC, creatinine, platelets; dots only where a test was actually done (most hours have none) |
+| **Bed 03** at display scale + tombstone | "Man, 52 · ICU unit not recorded · ICU hour 16 of 24 · Calibrated risk now 3.64% (3.55% in LightGBM mode) · first alert at hour 16 · in alert for 1 h" |
+| **WHAT HAPPENED** (third tombstone line, ground truth on) | "Sepsis onset at ICU hour 22: the first alert came 6 h before it." The same line closes the label |
+| Catalogue line | Exhibit number, held-out test patient id, served model, hospital admission time |
+| Strip on the left | The wall, collapsed and dimmed; the open bed is the one mounted in white |
+| **Label** tab | Risk trajectory (served risk, plus the LightGBM and GRU parts as thin lines, threshold, shaded alert hours, "now", onset), **What the model saw** (top 5 SHAP reasons, noted as coming from the LightGBM part), and all eight vitals as small charts |
+| **Every measurement** tab (34) | All 8 vitals and 26 labs as small charts in clinical groups (vitals, blood gas, perfusion, chemistry, liver, blood count), then a **flowsheet**: every measurement at every hour (bold = measured that hour; tick the box to see carried-forward values), plus the risk and status rows |
+| **Hour by hour** tab | Newest first, one entry per hour: risk and change since the previous hour, the LightGBM and GRU parts, status, everything measured that hour, and that hour's top reasons. Filters: all hours, alert hours, hours with new lab results |
 
-**Say:** "He has a fever of 38.4, and the team just adjusted his oxygen. The model picks up both. Notice it's partly reacting to *what the clinicians are doing*: ordering tests is a signal of concern."
+**Say:** "He has a fever of 38.4, and the team just adjusted his oxygen. The model picks up both. Notice it's partly reacting to *what the clinicians are doing*: ordering tests is a signal of concern." Step with → a few times: the reasons change ("FiO2 last measured 3h ago", "Temperature 38.7").
 
-**Toggle Show ground truth** → a black **"Sepsis onset" line at hour 22** appears on every chart, and a banner says "first alert 6 h before onset".
+**Behind the scenes:** `GET /api/patients/p003071?t=16&threshold=0.03&show_truth=true` returns every vital and lab for hours 0…*t* (all 34), the risk, alert and per-hour LightGBM/GRU series, the stored top-5 SHAP reasons for **every** hour (computed by TreeExplainer when the cohort was scored), and the onset hour, but only because `show_truth` is on.
 
-**Say:** "Sepsis was formally diagnosed at hour 22. The system raised the flag at hour 16, six hours earlier. In real life that's six hours to take blood cultures and start antibiotics."
+**Stop 3, Caught very early** (Bed 16, hour 30): first alert at hour 28, onset at hour 42 (14 h). Useful, but very early alerts also cost attention. **Stop 4, Missed** (Bed 07, hour 28): onset at hour 28 with no shading anywhere. "This one it missed. On the full test set it misses about 1 in 8."
 
-Step forward with **+1h** a few times and the **reasons change** ("FiO2 last measured 3h ago", "Temperature 38.7"). The explanation is live, per hour.
+### 6.4 Stop 5, the threshold: the clinical trade-off
 
-**Behind the scenes:** `GET /api/patients/p003071?t=16&threshold=0.03&show_truth=true` returns the hourly vitals and labs up to *t*, the risk and alert series, the stored top-5 SHAP reasons for hour *t* (computed by TreeExplainer when the cohort was built), and the onset hour, but only because `show_truth` is on.
-
-**Show honesty:** go back to the Ward and open **Bed 07**. Onset at hour 28 with no orange shading anywhere. "This one it missed. On the full test set it misses about 1 in 8."
-
-### 6.4 The threshold slider: the clinical trade-off
-
-On the Ward page around hour 19–40:
-- Drag down to **1.5%**: more beds alert (at hour 40: 5 alerts). "Catch more, earlier, but more false alarms."
-- Back to **3%** (policy link): 2 alerts.
+The ward at hour 40 (active beds):
+- Drag down to **1.5%**: 5 alerts. "Catch more, earlier, but more false alarms."
+- Back to **3%** (reset link): 2 alerts.
 - Up to **10%**: 0 alerts. "Quiet ward, but we'd miss people."
 
-**Say:** "Where to set this is a *clinical and staffing* decision, not a purely technical one. The model gives calibrated probabilities so a hospital can choose its own alarm budget."
+**Say:** "Where to set this is a *clinical and staffing* decision, not a purely technical one. The model gives calibrated probabilities so a hospital can choose its own alarm budget." **Behind the scenes:** the risks don't change; only the policy (threshold → alert) is re-applied, which is why it's instant.
 
-**Behind the scenes:** the risks don't change, because the model isn't re-run. Only the **policy** (threshold → alert) is re-applied. That's why it's instant.
-
-### 6.5 Model page (`/model`): "the evidence"
+### 6.5 Stop 6, the evidence (`/evidence`): two rooms
 
 | Element | Meaning | Source |
 |---|---|---|
 | Served-model note | "The app serves the LightGBM + GRU ensemble… its lockbox score has not been measured" | `/api/config` |
-| **Lockbox test (LightGBM)** band (white) | Headline sentence + all 10 test metrics with CIs | `reports/tables/final_test_metrics.csv` (frozen) |
-| Versus baselines | Never-alert, SIRS, qSOFA, logistic regression vs ours | `final_test_baselines.csv` |
-| Threshold trade-off chart | Utility, sensitivity and false alerts/day vs threshold (dev data); dotted line = chosen policy | `models/final/threshold_curve.json` |
-| Calibration (test) | Reliability diagram: calibrated (teal) hugs the diagonal; uncalibrated (orange) doesn't | `fig_calibration_test.png` via `/api/figures` |
-| ROC and precision–recall | Discrimination curves | `fig_roc_pr_test.png` |
-| **Development comparison (nested 5-fold CV)** band (dashed, blue-grey, tagged "Development data · not lockbox") | LightGBM vs GRU vs ensemble table, blend-weight table, bootstrap CIs, served configuration | `reports/tables/ensemble_dev_*.csv` via `dev_cv` in `/api/metrics` |
-| Cross-hospital table | The transfer experiment, R0 shown, R1–R3 behind a disclosure | `cross_hospital.csv` |
-| Model card (collapsed) | Served model, intended use, limits, ethics (Mitchell et al. format) | `reports/model_card.md` via `/api/model-card` |
+| **Lockbox test (LightGBM)** room (green wall, white labels) | Headline sentence; E1 test metrics with CIs; E2 baselines; E3 calibration and E4 ROC/PR figures (click for full size) | `final_test_metrics.csv`, `final_test_baselines.csv`, `/api/figures` |
+| **Development comparison (nested 5-fold CV)** annex (slate-blue wall, dashed edge, "Development data · not lockbox") | E5 LightGBM vs GRU vs ensemble (every configuration), E6 blend-weight search, E7 paired bootstrap, E8 served configuration | `reports/tables/ensemble_dev_*.csv` via `dev_cv` |
+| LightGBM, development data | E9 threshold trade-off curve (dotted = policy, solid = slider), E10 cross-hospital (R0; R1–R3 behind a disclosure), E11 model card | `threshold_curve.json`, `cross_hospital.csv`, `/api/model-card` |
 
-**Say:** "Nothing on this page is recomputed. The API serves the tables the pipeline wrote: the single LightGBM test run in the white band, the development comparison in the dashed band. They're never mixed in one table. The numbers in my slides, my report and this page are literally the same files."
+**Say:** "Nothing here is recomputed. The single LightGBM test run hangs in one room, the development comparison in another. They're never in one table. The numbers in my slides, my report and this page are literally the same files."
 
 ---
 
@@ -350,7 +328,7 @@ ONLINE (Docker Compose)
 
 ### Frontend (React + TypeScript + Recharts, `frontend/src/`)
 - `api.ts`: typed fetch helpers. `state/ReplayContext.tsx`: clock, speed, threshold (debounced) and show-truth, shared by all pages.
-- Pages: `WardPage`, `PatientPage`, `ModelPage`. Components: `RiskBar`, `Sparkline` (hand-drawn SVG), `RiskChart`/`VitalsGrid`/`LabsChart` (Recharts), `ReasonsPanel`, `LevelChip`, `Disclaimer`.
+- Pages: `WardPage` (the wall), `BedPage` (strip + mounted label with Label / Every measurement / Hour by hour tabs), `TourPage`, `EvidencePage`. Components: `RiskBar`, `Sparkline` and `MiniSeries` (hand-drawn SVG; 34 of them on a bed page stay cheap at 5× replay), `RiskChart` (Recharts), `ReasonsPanel`, `Status` (shape + word), `TourRail`, `Disclaimer`. Variable names, units and groups for all 34 measurements live in `src/variables.ts`.
 - If the backend dies, it shows "Cannot reach the API at /api — is the backend running?" with a Retry button.
 
 ### Deployment (Docker)

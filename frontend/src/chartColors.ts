@@ -2,17 +2,17 @@
 const css = (name: string) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 export const C = {
-  get text() {
-    return css("--text");
+  get ink() {
+    return css("--ink");
   },
   get muted() {
-    return css("--muted");
+    return css("--ink-muted");
   },
-  get grid() {
-    return css("--line");
+  get rule() {
+    return css("--rule");
   },
-  get teal() {
-    return css("--teal");
+  get wall() {
+    return css("--wall");
   },
   get alert() {
     return css("--alert");
@@ -23,10 +23,13 @@ export const C = {
   get watch() {
     return css("--watch");
   },
-  get dev() {
-    return css("--dev");
+  get gru() {
+    return css("--gru");
+  },
+  get annexInk() {
+    return css("--annex-ink");
   },
 };
 
-/** Axis tick sizes chosen for a classroom projector. */
-export const TICK = { main: 13, mini: 12 };
+/** Axis tick sizes for a laptop viewed at arm's length (the type scale's two smallest steps). */
+export const TICK = { main: 14, mini: 14 };

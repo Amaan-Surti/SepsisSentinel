@@ -398,7 +398,8 @@ All results in this section belong to the LightGBM model. The LightGBM + GRU ens
                                    │ JSON over /api (nginx proxy in Docker)
  ┌──────────────────── frontend (React + TypeScript + Recharts) ────────────────┐
  │ ReplayContext (clock, speed, threshold, show-truth)                          │
- │ Ward page · Patient page (risk, vitals, labs, SHAP reasons) · Model page      │
+ │ Ward wall · Bed label (risk, all 34 measurements, hour by hour) · Tour ·      │
+ │ Evidence (lockbox room · development annex)                                  │
  └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -420,23 +421,32 @@ Bed numbers are shuffled. Including misses and false alarms is deliberate, so th
 
 - **Replay clock:** play/pause (Space), ±1 h steps (← / →), three speeds, a threshold slider (1–50%, default 3%), a "show ground truth" toggle that reveals the onset hour for teaching, and `?t=` deep links.
 - **Model badge** in the top bar (Ensemble / LightGBM).
-- **Ward page:** one row per bed with calibrated risk bar (threshold tick), 12-h sparkline, last vitals, and a level chip (Alert: risk ≥ τ; Watch: risk ≥ ½τ; OK). Levels always carry text and a glyph, never colour alone.
-- **Patient page:** risk trajectory with the threshold, shaded alert hours and onset line; vitals and lab panels on the same time axis; "Why this risk" list of top-5 SHAP reasons, with a note that they come from the LightGBM part of the ensemble.
-- **Model page:** a "Lockbox test (LightGBM)" band (headline sentence, test metrics with CIs, baselines, calibration and ROC/PR figures) and a visually distinct, dashed "Development comparison (nested 5-fold CV)" band (model table, weight table, bootstrap CIs, served configuration); then the threshold trade-off curve, the cross-hospital table and the model card.
+- **Visual world:** a museum gallery (impeccable new-work round; chosen by the author from five sketched directions). The ward is a painted verdigris wall of numbered exhibits; opening a bed mounts it on a white object label while the rest of the wall dims. One type family (Atkinson Hyperlegible) on a five-step scale, chosen for legibility at arm's length on a laptop at an exhibition stand.
+- **Tour rail:** six numbered stops along the bottom (a false alarm, caught early, caught very early, missed, the threshold, the evidence); each sets the hour, ground truth and threshold and opens the right screen, and every sentence about a bed is computed from the API.
+- **Ward wall:** one row per bed with its status (Alert: risk ≥ τ; Watch: risk ≥ ½τ; OK; Discharged), age, sex and unit, calibrated risk bar (threshold tick), 12-h sparkline and six last vitals. Status always carries a shape and a word, never colour alone.
+- **Bed label:** the bed number at display scale with a tombstone line (who, unit, hour, risk now, first alert, time in alert) and, with ground truth on, the WHAT HAPPENED line. Three tabs:
+  - *Label:* risk trajectory (served risk plus its LightGBM and GRU parts, threshold, shaded alert hours, onset), "What the model saw" (top-5 SHAP reasons, noted as coming from the LightGBM part), and all eight vitals;
+  - *Every measurement:* all 34 hourly variables (8 vitals, 26 labs) as small charts in clinical groups, and a flowsheet of every measurement at every hour;
+  - *Hour by hour:* one entry per hour with risk and its change, the LightGBM and GRU parts, status, everything measured that hour and that hour's top reasons.
+- **Evidence page:** a "Lockbox test (LightGBM)" room (headline sentence, test metrics with CIs, baselines, calibration and ROC/PR figures) and a separate development annex on its own slate-blue wall with a dashed edge, "Development comparison (nested 5-fold CV)" (model table, weight table, bootstrap CIs, served configuration); then the LightGBM threshold trade-off curve, the cross-hospital table and the model card.
 - "Decision support on retrospective data. Not a medical device." is in the sticky header and the footer of every page.
-- The UI was reviewed with impeccable critique (24/40) and audit (12/20) before the P9 changes; the findings and fixes (projector type scale, AA contrast, reflow, real links for beds, labelled controls) are in `reports/ui_review.md`.
+- The P9 UI was reviewed with impeccable critique (24/40) and audit (12/20) and fixed; the Gallery Label redesign then went through an impeccable finish review (two fix rounds). Findings, fixes and the design record are in `reports/ui_review.md` and `DESIGN.md`.
 
-![Ward page at ICU hour 30: Bed 16 has just crossed the 3% threshold](screenshots/ward.jpg)
+![Ward wall at ICU hour 30](screenshots/ward.jpg)
 
-**Figure A.** Ward page at ICU hour 30 (ensemble). Bed 16 is in Alert for its third hour; summary chips give the count and rule for each level.
+**Figure A.** The ward wall at ICU hour 30 (ensemble). Bed 16 is in Alert for its third hour; the summary gives the count and rule for each level.
 
-![Patient page for Bed 16 with ground truth shown](screenshots/patient.jpg)
+![Bed 16 mounted on its label, ground truth shown](screenshots/patient.jpg)
 
-**Figure B.** Patient page for Bed 16 with ground truth revealed. The ensemble's first alert is at hour 28, 14 h before the labelled onset at hour 42 (LightGBM alone first alerted at hour 30). Top reasons at hour 30, from the LightGBM component: lactate drawn 2 h ago, temperature 38.2 °C and its 6/12-h maxima, recent PaCO2.
+**Figure B.** Bed 16 mounted on its label with ground truth revealed. The ensemble's first alert is at hour 28, 14 h before the labelled onset at hour 42 (LightGBM alone first alerted at hour 30). Top reasons at hour 30, from the LightGBM component: lactate drawn 2 h ago, temperature 38.2 °C and its 6/12-h maxima, recent PaCO2.
 
-![Model page](screenshots/model.jpg)
+![Every measurement for Bed 16](screenshots/measurements.jpg)
 
-**Figure C.** Model page: the lockbox band (LightGBM, frozen metrics with CIs and baselines) above the separate development-comparison band, all served from `reports/tables/`.
+**Figure C.** The *Every measurement* tab: all 34 hourly variables in clinical groups, then the hour-by-hour flowsheet.
+
+![Evidence page](screenshots/model_full.jpg)
+
+**Figure D.** The evidence page: the lockbox room (LightGBM, frozen metrics with CIs and baselines) above the separate development annex, all served from `reports/tables/`.
 
 ### 7.5 Engineering quality
 

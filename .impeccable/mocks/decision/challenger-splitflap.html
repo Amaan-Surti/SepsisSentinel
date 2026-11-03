@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Departure Board — SepsisSentinel</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700;800&family=Atkinson+Hyperlegible+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{font-family:"Atkinson Hyperlegible Next",Arial,sans-serif;background:#2A2D31;color:#F2F2EE}
+.note{background:#121212;color:#CFCFC8;font-size:14px;padding:6px 28px}
+.top{display:flex;align-items:center;gap:22px;padding:14px 28px;background:#3B3F44}
+.brand{font-weight:800;font-size:22px}.badge{background:#F2A900;color:#121212;border-radius:4px;padding:2px 10px;font-size:14px;font-weight:800}
+.nav span{padding:6px 12px;font-size:17px;color:#C9CBC4}.nav .on{color:#fff;border-bottom:3px solid #F2A900}
+.clock{margin-left:auto;font-family:"Atkinson Hyperlegible Mono",monospace;font-size:34px;color:#F2A900}
+.btn{border:1.5px solid #6B7078;border-radius:6px;padding:7px 13px;font-size:16px}.play{background:#F2A900;color:#121212;border-color:#F2A900;font-weight:800}
+.board{margin:22px 28px;background:#121212;border:6px solid #55595F;border-radius:10px;padding:14px 18px}
+.title{display:flex;justify-content:space-between;font-size:16px;color:#A6A8A1;padding:0 6px 10px;font-weight:700}
+.r{display:grid;grid-template-columns:150px 120px 170px 220px 230px 150px;gap:14px;align-items:center;padding:7px 6px;border-top:1px solid #2B2B2B}
+.h{font-size:14px;color:#8E918A;font-weight:700}
+.cells{display:flex;gap:3px}.cells b{display:inline-grid;place-items:center;width:30px;height:42px;background:#1E1E1E;border-radius:3px;font-family:"Atkinson Hyperlegible Mono",monospace;font-size:26px;color:#F2F2EE;position:relative}
+.cells b::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:#000}
+.lamp{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px}
+.lamp i{width:14px;height:14px;border-radius:50%}.al{color:#FF7A5C}.al i{background:#E4502E}.wa{color:#F2C94C}.wa i{background:#F2A900}.ok{color:#B8BBB3}.ok i{background:#5E625F}
+.spark{width:200px;height:34px}
+.side{position:absolute;right:28px;top:520px;width:600px;background:#F2F2EE;color:#121212;border-radius:10px;padding:20px 24px}
+.side h2{font-size:28px;font-weight:800}.side p{font-size:17px;margin-top:6px}
+</style></head><body>
+<div class="note"><b>Decision support on retrospective data. Not a medical device.</b> 24 held-out ICU stays, replayed hour by hour.</div>
+<div class="top"><span class="brand">SepsisSentinel</span><span class="badge">ENSEMBLE</span><div class="nav"><span class="on">Board</span><span>Evidence</span></div>
+<span class="clock">H 30 / 69</span><span class="btn">Reset</span><span class="btn">‹ 1 h</span><span class="btn play">▶ Play</span><span class="btn">1 h ›</span><span class="btn">Threshold 3.0%</span></div>
+<div class="board">
+  <div class="title"><span>WARD · 20 OF 24 BEDS · RANKED BY CALIBRATED RISK</span><span>NEXT UPDATE: HOUR 31</span></div>
+  <div class="r h"><span>Bed</span><span>Age / sex</span><span>Risk</span><span>Last 12 h</span><span>Status</span><span>In alert</span></div>
+  <div class="r"><span class="cells"><b>1</b><b>6</b></span><span style="font-size:20px">74 F</span><span class="cells"><b>4</b><b>.</b><b>1</b><b>4</b></span><svg class="spark"><polyline fill="none" stroke="#F2F2EE" stroke-width="2.5" points="0,30 40,30 80,29 120,28 150,26 160,8 200,8"/></svg><span class="lamp al"><i></i>ALERT</span><span class="cells"><b>3</b><b>h</b></span></div>
+  <div class="r"><span class="cells"><b>2</b><b>4</b></span><span style="font-size:20px">82 F</span><span class="cells"><b>1</b><b>.</b><b>9</b><b>8</b></span><svg class="spark"><polyline fill="none" stroke="#F2F2EE" stroke-width="2.5" points="0,26 40,14 80,18 120,16 160,18 200,20"/></svg><span class="lamp wa"><i></i>WATCH</span><span></span></div>
+  <div class="r"><span class="cells"><b>2</b><b>0</b></span><span style="font-size:20px">83 M</span><span class="cells"><b>1</b><b>.</b><b>4</b><b>5</b></span><svg class="spark"><polyline fill="none" stroke="#F2F2EE" stroke-width="2.5" points="0,24 60,24 120,25 200,24"/></svg><span class="lamp ok"><i></i>OK</span><span></span></div>
+  <div class="r"><span class="cells"><b>0</b><b>1</b></span><span style="font-size:20px">67 F</span><span class="cells"><b>1</b><b>.</b><b>2</b><b>9</b></span><svg class="spark"><polyline fill="none" stroke="#F2F2EE" stroke-width="2.5" points="0,25 60,26 120,25 200,26"/></svg><span class="lamp ok"><i></i>OK</span><span></span></div>
+  <div class="r"><span class="cells"><b>0</b><b>6</b></span><span style="font-size:20px">58 F</span><span class="cells"><b>1</b><b>.</b><b>1</b><b>7</b></span><svg class="spark"><polyline fill="none" stroke="#F2F2EE" stroke-width="2.5" points="0,26 100,26 130,10 170,20 200,26"/></svg><span class="lamp ok"><i></i>OK</span><span></span></div>
+  <div class="r"><span class="cells"><b>0</b><b>8</b></span><span style="font-size:20px">78 M</span><span class="cells"><b>1</b><b>.</b><b>1</b><b>2</b></span><svg class="spark"><polyline fill="none" stroke="#F2F2EE" stroke-width="2.5" points="0,26 200,27"/></svg><span class="lamp ok"><i></i>OK</span><span></span></div>
+</div>
+<div class="side"><h2>Bed 16 · Woman, 74 · SICU</h2><p>First alert hour 28 · onset hour 42 (ground truth) · reasons: lactate drawn 2 h ago, temperature 38.2 °C</p></div>
+</body></html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Observation Chart — SepsisSentinel</title>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0}
+html,body{width:1440px;height:900px;overflow:hidden}
+body{font-family:"Atkinson Hyperlegible Next",Arial,sans-serif;background:#FFFFFF;color:#1A1A1A}
+.note{background:#1F4E9A;color:#fff;font-size:14px;padding:6px 28px}
+.top{display:flex;align-items:center;gap:24px;padding:12px 28px;border-bottom:2px solid #1A1A1A}
+.brand{font-weight:800;font-size:22px}.badge{border:1.5px solid #1F4E9A;color:#1F4E9A;border-radius:4px;padding:1px 10px;font-size:14px;font-weight:700}
+.nav span{padding:6px 12px;font-size:17px}.nav .on{border-bottom:3px solid #1F4E9A;font-weight:800}
+.clock{margin-left:auto;font-size:32px;font-weight:800}.clock i{font-style:normal;font-size:16px;color:#555}
+.btn{border:1.5px solid #1A1A1A;border-radius:4px;padding:6px 12px;font-size:16px}.play{background:#1F4E9A;color:#fff;border-color:#1F4E9A}
+.grid{margin:16px 28px 0;border:2px solid #1A1A1A}
+.hd,.row{display:grid;grid-template-columns:150px 90px 1fr 110px 120px;align-items:center;border-bottom:1px solid #9AA3AD}
+.hd{font-size:14px;font-weight:800;background:#F1F3F6}.hd div,.row div{padding:6px 10px}
+.row{height:38px;font-size:17px}.row b{font-weight:800}
+.strip{display:flex;height:22px;border:1px solid #9AA3AD;padding:0!important;margin:0 10px}
+.strip i{flex:1;border-right:1px solid #fff}.o{background:#FFFFFF}.w{background:#FFE38A}.a{background:#F4A6A0}.x{background:#EEF0F3}
+.now{outline:3px solid #1F4E9A}
+.detail{display:grid;grid-template-columns:1fr 400px;gap:24px;margin:16px 28px}
+.detail h2{font-size:24px;font-weight:800}.detail p{font-size:16px;color:#444;margin:4px 0 8px}
+.zone{fill:none}
+.why li{list-style:none;border-bottom:1px solid #C9CED6;padding:8px 0;font-size:18px;font-weight:700}
+.tag{display:inline-block;background:#F4A6A0;border:1.5px solid #8F2B22;color:#5A140E;padding:2px 10px;border-radius:4px;font-weight:800;font-size:15px}
+</style></head><body>
+<div class="note"><b>Decision support on retrospective data. Not a medical device.</b> Replay of 24 de-identified held-out ICU stays.</div>
+<div class="top"><span class="brand">SepsisSentinel</span><span class="badge">Ensemble</span>
+<div class="nav"><span class="on">Ward chart</span><span>Evidence</span></div>
+<span class="clock">30 <i>/ 69 h</i></span><span class="btn">Reset</span><span class="btn">‹ 1 h</span><span class="btn play">▶ Play</span><span class="btn">1 h ›</span><span class="btn">Threshold 3.0%</span></div>
+<div class="grid">
+  <div class="hd"><div>Bed</div><div>Age/sex</div><div>Risk band, hour 0 → 69 (white OK · yellow Watch · red Alert)</div><div>Risk now</div><div>Status</div></div>
+  <div class="row"><div><b>Bed 16</b></div><div>74 F</div><div class="strip"><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="w"></i><i class="a"></i><i class="a now"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i></div><div><b>4.14%</b></div><div><span class="tag">▲ Alert</span></div></div>
+  <div class="row"><div><b>Bed 24</b></div><div>82 F</div><div class="strip"><i class="o"></i><i class="o"></i><i class="w"></i><i class="w"></i><i class="o"></i><i class="o"></i><i class="w"></i><i class="o"></i><i class="w"></i><i class="w"></i><i class="o"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w"></i><i class="w now"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i></div><div><b>1.98%</b></div><div>● Watch</div></div>
+  <div class="row"><div><b>Bed 20</b></div><div>83 M</div><div class="strip"><i class="a"></i><i class="w"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o now"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i></div><div><b>1.45%</b></div><div>– OK</div></div>
+  <div class="row"><div><b>Bed 01</b></div><div>67 F</div><div class="strip"><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o now"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i></div><div><b>1.29%</b></div><div>– OK</div></div>
+  <div class="row"><div><b>Bed 06</b></div><div>58 F</div><div class="strip"><i class="o"></i><i class="a"></i><i class="a"></i><i class="a"></i><i class="w"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o now"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i></div><div><b>1.17%</b></div><div>– OK</div></div>
+  <div class="row"><div><b>Bed 08</b></div><div>78 M</div><div class="strip"><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o"></i><i class="o now"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i><i class="x"></i></div><div><b>1.12%</b></div><div>– OK</div></div>
+</div>
+<div class="detail">
+  <div><h2>Bed 16 · Woman, 74 · Surgical ICU</h2><p>Calibrated risk by hour with the 3.0% alert line; onset hour 42 (ground truth on)</p>
+    <svg width="900" height="240" viewBox="0 0 900 240">
+      <rect x="40" y="10" width="850" height="80" fill="#F4A6A0" opacity=".45"/><rect x="40" y="90" width="850" height="50" fill="#FFE38A" opacity=".6"/><rect x="40" y="140" width="850" height="70" fill="#FFFFFF" stroke="#9AA3AD"/>
+      <line x1="40" y1="90" x2="890" y2="90" stroke="#8F2B22" stroke-width="2"/><text x="46" y="84" font-size="15" font-weight="700" fill="#8F2B22">Alert 3.0%</text>
+      <polyline fill="none" stroke="#1F4E9A" stroke-width="3" points="40,160 120,195 260,196 400,198 520,196 600,186 640,170 660,60 700,62 740,64"/>
+      <circle cx="660" cy="60" r="5" fill="#1F4E9A"/><circle cx="700" cy="62" r="5" fill="#1F4E9A"/><circle cx="740" cy="64" r="5" fill="#1F4E9A"/>
+      <line x1="880" y1="10" x2="880" y2="210" stroke="#1A1A1A" stroke-width="3"/><text x="790" y="26" font-size="15" font-weight="800">Onset h42</text>
+    </svg></div>
+  <ul class="why"><li>Lactate last measured 2 h ago</li><li>Temperature 38.2 °C</li><li>Temperature max over 6 h: 38.2</li><li>PaCO2 last measured 2 h ago</li></ul>
+</div>
+</body></html>

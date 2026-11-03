@@ -71,6 +71,9 @@ class PatientDetail(BaseModel):
     risk: List[float]
     alert: List[bool]
     reasons: List[Reason]
+    reasons_by_hour: List[List[Reason]]
+    risk_components: Optional[Dict[str, List[float]]] = None
+    hosp_adm_time: Optional[float] = None
     onset_hour: Optional[int] = None
     septic: Optional[bool] = None
     outcome: Optional[str] = None

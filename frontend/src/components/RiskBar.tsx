@@ -8,10 +8,10 @@ export function RiskBar({ risk, threshold, level }: { risk: number; threshold: n
   return (
     <div className="riskbar" title={`Risk ${pct(risk, 2)} · threshold ${pct(threshold, 1)}`}>
       <div className="riskbar-track" aria-hidden="true">
-        <div className={`riskbar-fill fill-${level.toLowerCase()}`} style={{ width: `${w}%` }} />
+        <div className={`riskbar-fill f-${level.toLowerCase()}`} style={{ width: `${w}%` }} />
         <div className="riskbar-tick" style={{ left: `${tick}%` }} />
       </div>
-      <span className="riskbar-value num-tab">{pct(risk, 2)}</span>
+      <span className="riskbar-value">{pct(risk, 2)}</span>
     </div>
   );
 }

@@ -1,0 +1,601 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-03T18:24:19+00:00",
+  "title": "Design System: SepsisSentinel",
+  "extensions": {
+    "colorMeta": {
+      "wall": {
+        "role": "primary",
+        "displayName": "Verdigris Wall",
+        "canonical": "oklch(33.9% 0.037 184.7)",
+        "tonalRamp": [
+          "oklch(15% 0.037 184.7)",
+          "oklch(26% 0.037 184.7)",
+          "oklch(38% 0.037 184.7)",
+          "oklch(50% 0.037 184.7)",
+          "oklch(62% 0.037 184.7)",
+          "oklch(74% 0.037 184.7)",
+          "oklch(85% 0.037 184.7)",
+          "oklch(95% 0.037 184.7)"
+        ]
+      },
+      "wall-deep": {
+        "role": "primary",
+        "displayName": "Deep Verdigris",
+        "canonical": "oklch(27.0% 0.029 184.5)",
+        "tonalRamp": [
+          "oklch(15% 0.029 184.5)",
+          "oklch(26% 0.029 184.5)",
+          "oklch(38% 0.029 184.5)",
+          "oklch(50% 0.029 184.5)",
+          "oklch(62% 0.029 184.5)",
+          "oklch(74% 0.029 184.5)",
+          "oklch(85% 0.029 184.5)",
+          "oklch(95% 0.029 184.5)"
+        ]
+      },
+      "wall-raised": {
+        "role": "primary",
+        "displayName": "Raised Verdigris",
+        "canonical": "oklch(40.7% 0.047 183.2)",
+        "tonalRamp": [
+          "oklch(15% 0.047 183.2)",
+          "oklch(26% 0.047 183.2)",
+          "oklch(38% 0.047 183.2)",
+          "oklch(50% 0.047 183.2)",
+          "oklch(62% 0.047 183.2)",
+          "oklch(74% 0.047 183.2)",
+          "oklch(85% 0.047 183.2)",
+          "oklch(95% 0.047 183.2)"
+        ]
+      },
+      "wall-line": {
+        "role": "primary",
+        "displayName": "Verdigris Line",
+        "canonical": "oklch(47.8% 0.048 184.2)",
+        "tonalRamp": [
+          "oklch(15% 0.048 184.2)",
+          "oklch(26% 0.048 184.2)",
+          "oklch(38% 0.048 184.2)",
+          "oklch(50% 0.048 184.2)",
+          "oklch(62% 0.048 184.2)",
+          "oklch(74% 0.048 184.2)",
+          "oklch(85% 0.048 184.2)",
+          "oklch(95% 0.048 184.2)"
+        ]
+      },
+      "wall-ink": {
+        "role": "primary",
+        "displayName": "Wall Ink",
+        "canonical": "oklch(96.2% 0.007 174.4)",
+        "tonalRamp": [
+          "oklch(15% 0.007 174.4)",
+          "oklch(26% 0.007 174.4)",
+          "oklch(38% 0.007 174.4)",
+          "oklch(50% 0.007 174.4)",
+          "oklch(62% 0.007 174.4)",
+          "oklch(74% 0.007 174.4)",
+          "oklch(85% 0.007 174.4)",
+          "oklch(95% 0.007 174.4)"
+        ]
+      },
+      "wall-muted": {
+        "role": "primary",
+        "displayName": "Lichen Muted",
+        "canonical": "oklch(80.1% 0.031 178.1)",
+        "tonalRamp": [
+          "oklch(15% 0.031 178.1)",
+          "oklch(26% 0.031 178.1)",
+          "oklch(38% 0.031 178.1)",
+          "oklch(50% 0.031 178.1)",
+          "oklch(62% 0.031 178.1)",
+          "oklch(74% 0.031 178.1)",
+          "oklch(85% 0.031 178.1)",
+          "oklch(95% 0.031 178.1)"
+        ]
+      },
+      "alert": {
+        "role": "secondary",
+        "displayName": "Vermilion",
+        "canonical": "oklch(57.0% 0.171 32.9)",
+        "tonalRamp": [
+          "oklch(15% 0.171 32.9)",
+          "oklch(26% 0.171 32.9)",
+          "oklch(38% 0.171 32.9)",
+          "oklch(50% 0.171 32.9)",
+          "oklch(62% 0.171 32.9)",
+          "oklch(74% 0.171 32.9)",
+          "oklch(85% 0.171 32.9)",
+          "oklch(95% 0.171 32.9)"
+        ]
+      },
+      "alert-ink": {
+        "role": "secondary",
+        "displayName": "Vermilion Ink",
+        "canonical": "oklch(47.1% 0.146 34.7)",
+        "tonalRamp": [
+          "oklch(15% 0.146 34.7)",
+          "oklch(26% 0.146 34.7)",
+          "oklch(38% 0.146 34.7)",
+          "oklch(50% 0.146 34.7)",
+          "oklch(62% 0.146 34.7)",
+          "oklch(74% 0.146 34.7)",
+          "oklch(85% 0.146 34.7)",
+          "oklch(95% 0.146 34.7)"
+        ]
+      },
+      "alert-soft": {
+        "role": "secondary",
+        "displayName": "Vermilion Wash",
+        "canonical": "oklch(93.5% 0.028 40.2)",
+        "tonalRamp": [
+          "oklch(15% 0.028 40.2)",
+          "oklch(26% 0.028 40.2)",
+          "oklch(38% 0.028 40.2)",
+          "oklch(50% 0.028 40.2)",
+          "oklch(62% 0.028 40.2)",
+          "oklch(74% 0.028 40.2)",
+          "oklch(85% 0.028 40.2)",
+          "oklch(95% 0.028 40.2)"
+        ]
+      },
+      "alert-on-wall": {
+        "role": "secondary",
+        "displayName": "Vermilion On Wall",
+        "canonical": "oklch(80.8% 0.111 35.8)",
+        "tonalRamp": [
+          "oklch(15% 0.111 35.8)",
+          "oklch(26% 0.111 35.8)",
+          "oklch(38% 0.111 35.8)",
+          "oklch(50% 0.111 35.8)",
+          "oklch(62% 0.111 35.8)",
+          "oklch(74% 0.111 35.8)",
+          "oklch(85% 0.111 35.8)",
+          "oklch(95% 0.111 35.8)"
+        ]
+      },
+      "watch": {
+        "role": "secondary",
+        "displayName": "Ochre",
+        "canonical": "oklch(75.0% 0.147 84.4)",
+        "tonalRamp": [
+          "oklch(15% 0.147 84.4)",
+          "oklch(26% 0.147 84.4)",
+          "oklch(38% 0.147 84.4)",
+          "oklch(50% 0.147 84.4)",
+          "oklch(62% 0.147 84.4)",
+          "oklch(74% 0.147 84.4)",
+          "oklch(85% 0.147 84.4)",
+          "oklch(95% 0.147 84.4)"
+        ]
+      },
+      "watch-ink": {
+        "role": "secondary",
+        "displayName": "Ochre Ink",
+        "canonical": "oklch(44.8% 0.089 79.1)",
+        "tonalRamp": [
+          "oklch(15% 0.089 79.1)",
+          "oklch(26% 0.089 79.1)",
+          "oklch(38% 0.089 79.1)",
+          "oklch(50% 0.089 79.1)",
+          "oklch(62% 0.089 79.1)",
+          "oklch(74% 0.089 79.1)",
+          "oklch(85% 0.089 79.1)",
+          "oklch(95% 0.089 79.1)"
+        ]
+      },
+      "watch-soft": {
+        "role": "secondary",
+        "displayName": "Ochre Wash",
+        "canonical": "oklch(93.8% 0.046 90.9)",
+        "tonalRamp": [
+          "oklch(15% 0.046 90.9)",
+          "oklch(26% 0.046 90.9)",
+          "oklch(38% 0.046 90.9)",
+          "oklch(50% 0.046 90.9)",
+          "oklch(62% 0.046 90.9)",
+          "oklch(74% 0.046 90.9)",
+          "oklch(85% 0.046 90.9)",
+          "oklch(95% 0.046 90.9)"
+        ]
+      },
+      "watch-on-wall": {
+        "role": "secondary",
+        "displayName": "Ochre On Wall",
+        "canonical": "oklch(84.5% 0.134 88.5)",
+        "tonalRamp": [
+          "oklch(15% 0.134 88.5)",
+          "oklch(26% 0.134 88.5)",
+          "oklch(38% 0.134 88.5)",
+          "oklch(50% 0.134 88.5)",
+          "oklch(62% 0.134 88.5)",
+          "oklch(74% 0.134 88.5)",
+          "oklch(85% 0.134 88.5)",
+          "oklch(95% 0.134 88.5)"
+        ]
+      },
+      "annex": {
+        "role": "tertiary",
+        "displayName": "Slate Annex",
+        "canonical": "oklch(32.0% 0.051 266.6)",
+        "tonalRamp": [
+          "oklch(15% 0.051 266.6)",
+          "oklch(26% 0.051 266.6)",
+          "oklch(38% 0.051 266.6)",
+          "oklch(50% 0.051 266.6)",
+          "oklch(62% 0.051 266.6)",
+          "oklch(74% 0.051 266.6)",
+          "oklch(85% 0.051 266.6)",
+          "oklch(95% 0.051 266.6)"
+        ]
+      },
+      "annex-line": {
+        "role": "tertiary",
+        "displayName": "Annex Line",
+        "canonical": "oklch(69.4% 0.065 270.6)",
+        "tonalRamp": [
+          "oklch(15% 0.065 270.6)",
+          "oklch(26% 0.065 270.6)",
+          "oklch(38% 0.065 270.6)",
+          "oklch(50% 0.065 270.6)",
+          "oklch(62% 0.065 270.6)",
+          "oklch(74% 0.065 270.6)",
+          "oklch(85% 0.065 270.6)",
+          "oklch(95% 0.065 270.6)"
+        ]
+      },
+      "annex-label": {
+        "role": "tertiary",
+        "displayName": "Annex Label",
+        "canonical": "oklch(95.8% 0.010 267.4)",
+        "tonalRamp": [
+          "oklch(15% 0.010 267.4)",
+          "oklch(26% 0.010 267.4)",
+          "oklch(38% 0.010 267.4)",
+          "oklch(50% 0.010 267.4)",
+          "oklch(62% 0.010 267.4)",
+          "oklch(74% 0.010 267.4)",
+          "oklch(85% 0.010 267.4)",
+          "oklch(95% 0.010 267.4)"
+        ]
+      },
+      "annex-ink": {
+        "role": "tertiary",
+        "displayName": "Annex Ink",
+        "canonical": "oklch(31.8% 0.070 268.0)",
+        "tonalRamp": [
+          "oklch(15% 0.070 268.0)",
+          "oklch(26% 0.070 268.0)",
+          "oklch(38% 0.070 268.0)",
+          "oklch(50% 0.070 268.0)",
+          "oklch(62% 0.070 268.0)",
+          "oklch(74% 0.070 268.0)",
+          "oklch(85% 0.070 268.0)",
+          "oklch(95% 0.070 268.0)"
+        ]
+      },
+      "gru": {
+        "role": "tertiary",
+        "displayName": "GRU Violet",
+        "canonical": "oklch(51.9% 0.118 292.1)",
+        "tonalRamp": [
+          "oklch(15% 0.118 292.1)",
+          "oklch(26% 0.118 292.1)",
+          "oklch(38% 0.118 292.1)",
+          "oklch(50% 0.118 292.1)",
+          "oklch(62% 0.118 292.1)",
+          "oklch(74% 0.118 292.1)",
+          "oklch(85% 0.118 292.1)",
+          "oklch(95% 0.118 292.1)"
+        ]
+      },
+      "label": {
+        "role": "neutral",
+        "displayName": "Label White",
+        "canonical": "oklch(97.8% 0.005 106.5)",
+        "tonalRamp": [
+          "oklch(15% 0.005 106.5)",
+          "oklch(26% 0.005 106.5)",
+          "oklch(38% 0.005 106.5)",
+          "oklch(50% 0.005 106.5)",
+          "oklch(62% 0.005 106.5)",
+          "oklch(74% 0.005 106.5)",
+          "oklch(85% 0.005 106.5)",
+          "oklch(95% 0.005 106.5)"
+        ]
+      },
+      "label-2": {
+        "role": "neutral",
+        "displayName": "Label Shade",
+        "canonical": "oklch(94.9% 0.009 113.2)",
+        "tonalRamp": [
+          "oklch(15% 0.009 113.2)",
+          "oklch(26% 0.009 113.2)",
+          "oklch(38% 0.009 113.2)",
+          "oklch(50% 0.009 113.2)",
+          "oklch(62% 0.009 113.2)",
+          "oklch(74% 0.009 113.2)",
+          "oklch(85% 0.009 113.2)",
+          "oklch(95% 0.009 113.2)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(20.7% 0.009 184.2)",
+        "tonalRamp": [
+          "oklch(15% 0.009 184.2)",
+          "oklch(26% 0.009 184.2)",
+          "oklch(38% 0.009 184.2)",
+          "oklch(50% 0.009 184.2)",
+          "oklch(62% 0.009 184.2)",
+          "oklch(74% 0.009 184.2)",
+          "oklch(85% 0.009 184.2)",
+          "oklch(95% 0.009 184.2)"
+        ]
+      },
+      "ink-muted": {
+        "role": "neutral",
+        "displayName": "Ink Muted",
+        "canonical": "oklch(45.3% 0.016 178.8)",
+        "tonalRamp": [
+          "oklch(15% 0.016 178.8)",
+          "oklch(26% 0.016 178.8)",
+          "oklch(38% 0.016 178.8)",
+          "oklch(50% 0.016 178.8)",
+          "oklch(62% 0.016 178.8)",
+          "oklch(74% 0.016 178.8)",
+          "oklch(85% 0.016 178.8)",
+          "oklch(95% 0.016 178.8)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Label Rule",
+        "canonical": "oklch(88.0% 0.013 126.4)",
+        "tonalRamp": [
+          "oklch(15% 0.013 126.4)",
+          "oklch(26% 0.013 126.4)",
+          "oklch(38% 0.013 126.4)",
+          "oklch(50% 0.013 126.4)",
+          "oklch(62% 0.013 126.4)",
+          "oklch(74% 0.013 126.4)",
+          "oklch(85% 0.013 126.4)",
+          "oklch(95% 0.013 126.4)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The bed number on the mounted label only; tracks viewport height."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page and room titles, replay clock value, wall bed numbers, ward summary counts."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Brand, label section titles, fact values, mini-series values; tombstone line at 400."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, controls, table cells."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Column heads, field labels, captions (400), chart ticks."
+      },
+      "catalogue": {
+        "displayName": "Catalogue (Mono)",
+        "purpose": "Exhibit catalogue line, SHAP feature codes, evidence plate numbers."
+      }
+    },
+    "shadows": [
+      {
+        "name": "mount",
+        "value": "0 14px 36px rgba(6, 18, 16, 0.35)",
+        "purpose": "Lifts the mounted object label and lockbox evidence plates off the wall. Nothing else casts a shadow."
+      },
+      {
+        "name": "tab-underline",
+        "value": "inset 0 -3px 0 var(--ink)",
+        "purpose": "Selected tab on a label board."
+      },
+      {
+        "name": "current-column",
+        "value": "inset 2px 0 0 var(--ink), inset -2px 0 0 var(--ink)",
+        "purpose": "Brackets the current replay hour in the flowsheet."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 3px solid var(--wall-ink); outline-offset: 2px (var(--wall) on labels)",
+        "purpose": "Keyboard focus everywhere."
+      }
+    ],
+    "motion": [],
+    "motionNote": "No transitions or animations exist in the build; state changes are instant and the replay clock is the only motion.",
+    "breakpoints": [
+      {
+        "name": "dense-table",
+        "value": "max-width: 1366px"
+      },
+      {
+        "name": "single-column",
+        "value": "max-width: 1240px"
+      },
+      {
+        "name": "narrow",
+        "value": "max-width: 900px"
+      },
+      {
+        "name": "short-laptop",
+        "value": "max-height: 760px"
+      }
+    ],
+    "openItems": [],
+    "resolvedItems": [
+      "Fonts are self-hosted (2026-11-04): Atkinson Hyperlegible Next and Mono variable woff2 files (latin + latin-ext, 81 KB) with their SIL OFL 1.1 licences in `frontend/public/fonts/`, declared in `frontend/src/fonts.css`; no external requests. Verified in headless Chrome with every host except 127.0.0.1 unreachable: both families load from /fonts/."
+    ]
+  },
+  "components": [
+    {
+      "name": "Wall Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Default control on the verdigris wall: outlined, quiet, 40px tall.",
+      "html": "<div class=\"ds-wall\"><button class=\"ds-btn\">Reset</button> <button class=\"ds-btn\" disabled>1 h</button></div>",
+      "css": ".ds-wall { background: var(--wall, #203e3a); padding: 16px; } .ds-btn { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); font-size: 17px; color: var(--wall-ink, #eef4f2); background: transparent; border: 1.5px solid var(--wall-line, #3c6660); border-radius: 8px; padding: 6px 12px; min-height: 40px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; } .ds-btn:hover:not(:disabled) { background: var(--wall-raised, #2a524c); border-color: var(--wall-muted, #aac5be); } .ds-btn:focus-visible { outline: 3px solid var(--wall-ink, #eef4f2); outline-offset: 2px; } .ds-btn:disabled { opacity: 0.4; cursor: default; }"
+    },
+    {
+      "name": "Primary Button (Play)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The mounted control: label white on the wall, used for Play/Pause and go-to-stop.",
+      "html": "<div class=\"ds-wall\"><button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><path d=\"M5 3.5v9l7-4.5z\" fill=\"currentColor\"/></svg>Play</button></div>",
+      "css": ".ds-wall { background: var(--wall, #203e3a); padding: 16px; } .ds-btn-primary { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); font-size: 17px; font-weight: 800; color: var(--ink, #131918); background: var(--label, #f8f8f4); border: 1.5px solid var(--label, #f8f8f4); border-radius: 8px; padding: 6px 12px; min-height: 40px; min-width: 104px; justify-content: center; display: inline-flex; align-items: center; gap: 6px; cursor: pointer; } .ds-btn-primary:hover { background: #ffffff; } .ds-btn-primary:focus-visible { outline: 3px solid var(--wall-ink, #eef4f2); outline-offset: 2px; }"
+    },
+    {
+      "name": "Top Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link-active",
+      "description": "Ward · Tour · Evidence; the active page is mounted in label white.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-a is-active\" href=\"#\">Ward</a><a class=\"ds-nav-a\" href=\"#\">Tour</a><a class=\"ds-nav-a\" href=\"#\">Evidence</a></nav>",
+      "css": ".ds-nav { display: flex; gap: 4px; background: var(--wall, #203e3a); padding: 10px 16px; } .ds-nav-a { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); font-size: 17px; font-weight: 700; text-decoration: none; padding: 7px 14px; border-radius: 8px; color: var(--wall-muted, #aac5be); } .ds-nav-a:hover { color: #fff; background: var(--wall-raised, #2a524c); } .ds-nav-a:focus-visible { outline: 3px solid var(--wall-ink, #eef4f2); outline-offset: 2px; } .ds-nav-a.is-active { color: var(--ink, #131918); background: var(--label, #f8f8f4); }"
+    },
+    {
+      "name": "Status (shape + word)",
+      "kind": "custom",
+      "refersTo": "status-alert-on-wall",
+      "description": "Status on the wall and on a label: glyph + word, colour redundant, two ink variants.",
+      "html": "<div class=\"ds-wall\"><span class=\"ds-st ds-st-alert\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 2.5 14 13H2z\" fill=\"currentColor\"/></svg>Alert</span><span class=\"ds-st ds-st-watch\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"4.75\" fill=\"currentColor\"/></svg>Watch</span><span class=\"ds-st ds-st-ok\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M3.5 8h9\"/></svg>OK</span><span class=\"ds-st ds-st-ok\">Discharged</span></div><div class=\"ds-lab\"><span class=\"ds-st ds-st-alert\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 2.5 14 13H2z\" fill=\"currentColor\"/></svg>Alert</span><span class=\"ds-st ds-st-watch\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"4.75\" fill=\"currentColor\"/></svg>Watch</span><span class=\"ds-st ds-st-ok\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M3.5 8h9\"/></svg>OK</span></div>",
+      "css": ".ds-wall { background: var(--wall, #203e3a); padding: 14px 16px; display: flex; gap: 20px; } .ds-lab { background: var(--label, #f8f8f4); padding: 14px 16px; display: flex; gap: 20px; } .ds-st { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); font-size: 17px; font-weight: 800; display: inline-flex; align-items: center; gap: 7px; } .ds-wall .ds-st-alert { color: var(--alert-on-wall, #ffa68e); } .ds-wall .ds-st-watch { color: var(--watch-on-wall, #f0c75a); } .ds-wall .ds-st-ok { color: var(--wall-muted, #aac5be); } .ds-lab .ds-st-alert { color: var(--alert-ink, #9c3218); } .ds-lab .ds-st-watch { color: var(--watch-ink, #6f4e09); } .ds-lab .ds-st-ok { color: var(--ink-muted, #4d5956); }"
+    },
+    {
+      "name": "Status Chip",
+      "kind": "chip",
+      "refersTo": "chip-alert",
+      "description": "The same status mounted on a label board as a pill.",
+      "html": "<div class=\"ds-lab\"><span class=\"ds-chip ds-chip-alert\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 2.5 14 13H2z\" fill=\"currentColor\"/></svg>Alert</span><span class=\"ds-chip ds-chip-watch\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"4.75\" fill=\"currentColor\"/></svg>Watch</span><span class=\"ds-chip ds-chip-ok\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M3.5 8h9\"/></svg>OK</span></div>",
+      "css": ".ds-lab { background: var(--label, #f8f8f4); padding: 14px 16px; display: flex; gap: 10px; } .ds-chip { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; padding: 5px 16px; font-weight: 800; font-size: 17px; } .ds-chip-alert { background: var(--alert-soft, #fbe4dc); color: var(--alert-ink, #9c3218); } .ds-chip-watch { background: var(--watch-soft, #f6eac8); color: var(--watch-ink, #6f4e09); } .ds-chip-ok { background: var(--label-2, #eeefe8); color: var(--ink-muted, #4d5956); }"
+    },
+    {
+      "name": "Object Label",
+      "kind": "card",
+      "refersTo": "label-board",
+      "description": "The mounted exhibit: display bed number, tombstone line, mono catalogue line, closed by ink rules and the WHAT HAPPENED reveal.",
+      "html": "<div class=\"ds-wall\"><article class=\"ds-label\"><div class=\"ds-label-head\"><h1 class=\"ds-bed\">Bed 16</h1><div><p class=\"ds-tomb\">Woman, 74 · Surgical ICU · ICU hour <b>30</b> of 45<br>Calibrated risk now <b>4.14%</b> · first alert at hour <b>28</b></p><p class=\"ds-cat\">EXHIBIT 16 · HELD-OUT TEST PATIENT · LIGHTGBM + GRU ENSEMBLE</p></div></div><p class=\"ds-reveal\"><span class=\"ds-k\">WHAT HAPPENED</span>Sepsis onset at ICU hour <b>42</b>: the first alert came <b>14 h</b> before it.</p></article></div>",
+      "css": ".ds-wall { background: var(--wall, #203e3a); padding: 24px; } .ds-label { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); background: var(--label, #f8f8f4); color: var(--ink, #131918); border-radius: 14px; padding: 26px 30px 30px; box-shadow: 0 14px 36px rgba(6, 18, 16, 0.35); } .ds-label-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 28px; align-items: center; padding-bottom: 14px; border-bottom: 1.5px solid var(--ink, #131918); } .ds-bed { margin: 0; font-size: clamp(56px, 9vh, 80px); font-weight: 800; line-height: 0.9; letter-spacing: -0.02em; } .ds-tomb { margin: 0; font-size: 22px; line-height: 1.35; } .ds-tomb b { font-weight: 800; font-variant-numeric: tabular-nums; } .ds-cat { margin: 8px 0 0; font-family: var(--mono, \"Atkinson Hyperlegible Mono\", Consolas, monospace); font-size: 14px; letter-spacing: 0.02em; color: var(--ink-muted, #4d5956); } .ds-reveal { margin: 24px 0 0; padding-top: 14px; border-top: 2.5px solid var(--ink, #131918); font-size: 22px; display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; } .ds-reveal b { font-weight: 800; } .ds-k { font-size: 14px; font-weight: 800; letter-spacing: 0.06em; color: var(--ink-muted, #4d5956); }"
+    },
+    {
+      "name": "Wall Strip (focus dims the wall)",
+      "kind": "nav",
+      "refersTo": "strip-bed-focus",
+      "description": "The ward collapsed beside an open label; only the focused bed is mounted.",
+      "html": "<div class=\"ds-wall\"><ol class=\"ds-strip\"><li><a class=\"ds-strip-a is-focus\" href=\"#\"><span class=\"ds-n\">16</span><span class=\"ds-st\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.25\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 2.5 14 13H2z\" fill=\"currentColor\"/></svg>Alert</span><span>4.14%</span></a></li><li><a class=\"ds-strip-a\" href=\"#\"><span class=\"ds-n\">24</span><span class=\"ds-st ds-w\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"4.75\" fill=\"currentColor\"/></svg>Watch</span><span>1.98%</span></a></li><li><a class=\"ds-strip-a\" href=\"#\"><span class=\"ds-n\">20</span><span class=\"ds-st ds-o\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" aria-hidden=\"true\"><path d=\"M3.5 8h9\"/></svg>OK</span><span>1.45%</span></a></li></ol></div>",
+      "css": ".ds-wall { background: var(--wall, #203e3a); padding: 16px; width: 300px; } .ds-strip { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; } .ds-strip-a { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); font-size: 17px; display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; text-decoration: none; color: var(--wall-muted, #aac5be); opacity: 0.86; font-variant-numeric: tabular-nums; } .ds-strip-a:hover { opacity: 1; background: var(--wall-raised, #2a524c); } .ds-strip-a:focus-visible { outline: 3px solid var(--wall-ink, #eef4f2); outline-offset: 2px; } .ds-n { font-size: 22px; font-weight: 800; color: var(--wall-ink, #eef4f2); } .ds-st { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; color: var(--alert-on-wall, #ffa68e); } .ds-st.ds-w { color: var(--watch-on-wall, #f0c75a); } .ds-st.ds-o { color: var(--wall-muted, #aac5be); } .ds-strip-a.is-focus { opacity: 1; background: var(--label, #f8f8f4); color: var(--ink, #131918); } .ds-strip-a.is-focus .ds-n, .ds-strip-a.is-focus .ds-st { color: var(--ink, #131918); }"
+    },
+    {
+      "name": "Tour Rail",
+      "kind": "nav",
+      "refersTo": "tour-stop-current",
+      "description": "Numbered audio-guide stops along the foot of every page; the current stop is mounted.",
+      "html": "<nav class=\"ds-rail\"><span class=\"ds-rail-t\">Tour</span><button class=\"ds-stop\"><i>1</i>A false alarm</button><button class=\"ds-stop\" aria-current=\"step\"><i>2</i>Caught early</button><button class=\"ds-stop\"><i>3</i>Caught very early</button></nav>",
+      "css": ".ds-rail { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); display: flex; align-items: center; gap: 8px; padding: 10px 28px; background: var(--wall-deep, #152b28); border-top: 1px solid var(--wall-line, #3c6660); } .ds-rail-t { font-size: 14px; font-weight: 700; color: var(--wall-muted, #aac5be); margin-right: 6px; } .ds-stop { font: inherit; font-size: 17px; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--wall-line, #3c6660); background: transparent; color: var(--wall-ink, #eef4f2); border-radius: 999px; padding: 4px 16px 4px 4px; min-height: 40px; cursor: pointer; white-space: nowrap; } .ds-stop i { font-style: normal; width: 32px; height: 32px; border-radius: 50%; display: inline-grid; place-items: center; font-weight: 800; background: var(--wall-raised, #2a524c); } .ds-stop:hover { background: var(--wall-raised, #2a524c); border-color: var(--wall-muted, #aac5be); } .ds-stop:focus-visible { outline: 3px solid var(--wall-ink, #eef4f2); outline-offset: 2px; } .ds-stop[aria-current=\"step\"] { background: var(--label, #f8f8f4); color: var(--ink, #131918); border-color: var(--label, #f8f8f4); } .ds-stop[aria-current=\"step\"] i { background: var(--ink, #131918); color: var(--label, #f8f8f4); }"
+    },
+    {
+      "name": "Risk Bar",
+      "kind": "custom",
+      "refersTo": "status-alert-on-wall",
+      "description": "Wall-table instrument: threshold-scaled fill with a white tick at tau.",
+      "html": "<div class=\"ds-wall\"><div class=\"ds-rb\"><div class=\"ds-rb-track\"><div class=\"ds-rb-fill ds-a\" style=\"width:69%\"></div><div class=\"ds-rb-tick\" style=\"left:50%\"></div></div><span class=\"ds-rb-v\">4.14%</span></div><div class=\"ds-rb\"><div class=\"ds-rb-track\"><div class=\"ds-rb-fill ds-w\" style=\"width:33%\"></div><div class=\"ds-rb-tick\" style=\"left:50%\"></div></div><span class=\"ds-rb-v\">1.98%</span></div></div>",
+      "css": ".ds-wall { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); background: var(--wall, #203e3a); color: var(--wall-ink, #eef4f2); padding: 16px; width: 280px; display: grid; gap: 12px; } .ds-rb { display: flex; align-items: center; gap: 10px; } .ds-rb-track { position: relative; flex: 1; height: 10px; border-radius: 5px; background: var(--wall-deep, #152b28); } .ds-rb-fill { height: 100%; border-radius: 5px; background: var(--wall-muted, #aac5be); } .ds-rb-fill.ds-a { background: var(--alert-on-wall, #ffa68e); } .ds-rb-fill.ds-w { background: var(--watch-on-wall, #f0c75a); } .ds-rb-tick { position: absolute; top: -4px; width: 2px; height: 18px; background: #fff; } .ds-rb-v { width: 64px; text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Evidence Rooms",
+      "kind": "card",
+      "refersTo": "annex-label",
+      "description": "Lockbox room (outlined, mounted plates) and development annex (slate wall, dashed edge, flat plates); never mixed.",
+      "html": "<div class=\"ds-wall\"><section class=\"ds-room ds-lock\"><h2>Lockbox test (LightGBM) <span class=\"ds-tag ds-tag-l\">8,068 held-out patients · evaluated once</span></h2><div class=\"ds-plate\"><span class=\"ds-cat\">E1</span><b>Test metrics</b></div></section><section class=\"ds-room ds-annex\"><h2>Development comparison <span class=\"ds-tag ds-tag-a\">Development data · not lockbox</span></h2><div class=\"ds-aplate\"><span class=\"ds-cat\">E5</span><b>LightGBM vs GRU vs ensemble</b></div></section></div>",
+      "css": ".ds-wall { font-family: var(--font, \"Atkinson Hyperlegible Next\", Arial, sans-serif); background: var(--wall, #203e3a); padding: 16px; display: grid; gap: 20px; } .ds-room { border-radius: 18px; padding: 20px; } .ds-room h2 { margin: 0 0 12px; font-size: 22px; font-weight: 800; color: #fff; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; } .ds-lock { border: 1.5px solid var(--wall-line, #3c6660); } .ds-annex { background: var(--annex, #27324d); border: 2.5px dashed var(--annex-line, #8d9bc6); } .ds-tag { font-size: 14px; font-weight: 800; border-radius: 999px; padding: 4px 14px; } .ds-tag-l { background: var(--label, #f8f8f4); color: var(--ink, #131918); } .ds-tag-a { background: var(--annex-label, #eef1f8); color: var(--annex-ink, #233056); } .ds-plate { background: var(--label, #f8f8f4); color: var(--ink, #131918); border-radius: 14px; padding: 20px 22px; box-shadow: 0 14px 36px rgba(6, 18, 16, 0.35); font-size: 22px; } .ds-aplate { background: var(--annex-label, #eef1f8); color: var(--annex-ink, #233056); border-radius: 14px; padding: 20px 22px; font-size: 22px; } .ds-cat { font-family: var(--mono, \"Atkinson Hyperlegible Mono\", Consolas, monospace); font-size: 14px; font-weight: 600; margin-right: 10px; opacity: 0.8; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Gallery Label",
+    "overview": "The whole dashboard is a gallery. The shell is a painted verdigris wall on which every ICU bed hangs as a numbered exhibit; only the exhibit in focus is mounted on a warm-white object label, the way a museum mounts the one piece you are standing in front of. The label reads like a museum tombstone: a heavy bed number at display scale, a tombstone line (who, which unit, which hour, the calibrated risk now), a monospaced catalogue line, and at the foot the line the visitor waits for, WHAT HAPPENED, revealing onset beside the alert that came hours earlier.\n\nDensity follows the gallery's two distances. From a metre away the wall is legible as numbers, status shapes and words; up close the label carries everything an examiner asks for, every measurement and every hour, behind tabs on the same board. The system refuses the dark neon ICU-monitor dashboard and the white SaaS card grid: there are no glowing traces, no gradient tiles, no rows of identical white cards on grey. Colour is architectural (wall, label, annex) except for two state colours that appear only where they mean state.\n\nEvidence hangs in rooms. The single lockbox test of LightGBM hangs in an outlined room on the main wall; development results for the served ensemble hang in a separate annex with its own slate-blue wall and dashed edge, so the two kinds of number can never be read as one room.",
+    "keyCharacteristics": [
+      "Verdigris wall shell; warm-white label board only for the focused exhibit or an evidence plate.",
+      "Vermilion (Alert) and ochre (Watch) are state colours only, each with an on-wall and an on-label ink variant.",
+      "Status is always shape plus word: triangle Alert, circle Watch, bar OK, the word Discharged.",
+      "One family, Atkinson Hyperlegible Next, on a strict five-step scale (14 · 17 · 22 · 32 · clamp 56–80); Atkinson Hyperlegible Mono for catalogue numbers and codes.",
+      "One catalogue number per bed, identical on the wall, the strip, the label and the tour.",
+      "Opening a bed collapses the wall to a dimmed strip; the focused bed is the only mounted item.",
+      "A numbered tour rail runs along the foot of every page; the current stop is mounted in label white."
+    ],
+    "rules": [
+      {
+        "name": "The State-Only Rule",
+        "body": "Vermilion and ochre mean Alert and Watch and nothing else. No decorative use, no brand use, no \"highlight\" use. If a thing is not in Alert or Watch, it does not get those hues.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Inks Rule",
+        "body": "Every state colour has a wall variant and a label variant: `alert-on-wall` / `watch-on-wall` on verdigris, `alert-ink` / `watch-ink` (text) and `alert` / `watch` (fills) on a label. Never put the on-wall variant on a label or the reverse; contrast fails both ways.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Mount Rule",
+        "body": "Label white marks the one thing in focus: the open bed, the current tour stop, the active page, the primary action (Play). Never use it as a generic card background on the wall for unfocused items. Evidence plates are the exception because each plate is itself an exhibit.",
+        "section": "colors"
+      },
+      {
+        "name": "The Five Steps Rule",
+        "body": "Only five sizes exist: 14, 17, 22, 32 and the display clamp. A new element picks one of them; there is no 12, 15, 18, 20 or 24.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Every number that can change with the replay clock (risk, vitals, metrics, hours) is set with tabular figures so columns do not shimmer as the clock plays.",
+        "section": "typography"
+      },
+      {
+        "name": "The Run-In Key Rule",
+        "body": "The only letter-spaced capitals in body type are the inline key `WHAT HAPPENED` (14px, 800, 0.06em) that opens the reveal sentence on the same line. It is never a separate eyebrow above a heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The Focus Dims The Wall Rule",
+        "body": "When a bed is open, the wall collapses to a strip at 0.86 opacity; only the focused bed is mounted in label white. Hover lifts a strip item to full opacity.",
+        "section": "layout"
+      },
+      {
+        "name": "The One Catalogue Number Rule",
+        "body": "A bed has one number, the same two digits on the wall table, the strip, the label's display numeral, the catalogue line and the tour. Never introduce a second identifier in display type.",
+        "section": "layout"
+      },
+      {
+        "name": "The Mounted Not Floating Rule",
+        "body": "Only mounted label boards cast the Mount shadow. Wall items, tiles, rows and tour stops are flat and outlined; annex plates are flat on their slate wall.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do hang every page on the verdigris wall (`#203e3a`) and mount only the item in focus on label white (`#f8f8f4`).",
+      "Do render every status as glyph + word; use `alert-on-wall` / `watch-on-wall` on the wall and `alert-ink` / `watch-ink` on labels.",
+      "Do pick type sizes only from 14 / 17 / 22 / 32 / clamp(56px, 9vh, 80px), with tabular figures for every live number.",
+      "Do keep one catalogue number per bed everywhere, and set catalogue lines and codes in Atkinson Hyperlegible Mono.",
+      "Do hang development (ensemble) evidence in the slate annex with its dashed `annex-line` edge, and lockbox evidence in the outlined room on the main wall.",
+      "Do keep the disclaimer strip at the top and the tour rail at the foot of every page.",
+      "Do read chart colours from the CSS tokens (`chartColors.ts`) rather than hard-coding them."
+    ],
+    "donts": [
+      "Don't use vermilion or ochre for anything that is not Alert or Watch state.",
+      "Don't show status by colour alone, and don't add a third state hue.",
+      "Don't put lockbox and development numbers on the same plate, table or room.",
+      "Don't build a dark neon ICU-monitor look (glows, black backgrounds, saturated traces) or a white SaaS card grid.",
+      "Don't cast the Mount shadow from anything but a mounted label board.",
+      "Don't mount unfocused items in label white, and don't use brass or gold for the current tour stop; it would collide with ochre Watch.",
+      "Don't add letter-spaced eyebrows or kickers above headings; the only run-in key is WHAT HAPPENED."
+    ]
+  }
+}

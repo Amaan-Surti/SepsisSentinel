@@ -91,9 +91,11 @@ flowchart LR
 - **Causal GRU:** the GRU is unidirectional, so hour *t* sees only hours ≤ *t*; a test changes later raw hours and checks that earlier ensemble risks do not move.
 - **Same code online and offline:** `src/sepsis/inference.py` serves both the demo cohort and `POST /api/predict` (parity < 1e-6; ensemble online vs batch 4.3e-7). The GRU runs on CPU so results are identical everywhere.
 
-| Patient view | Model view |
+| A bed on its label | Every measurement, every hour |
 |---|---|
-| ![Patient](reports/screenshots/patient.jpg) | ![Model](reports/screenshots/model.jpg) |
+| ![Bed](reports/screenshots/patient.jpg) | ![Measurements](reports/screenshots/measurements.jpg) |
+| **Hour by hour** | **Evidence: lockbox room and development annex** |
+| ![Hours](reports/screenshots/hours.jpg) | ![Evidence](reports/screenshots/model.jpg) |
 
 ---
 
@@ -124,7 +126,7 @@ flowchart LR
 
 ## Quick start: run the dashboard
 
-The frozen model and demo cohort are in the repo, so the raw data is **not** needed to run the demo.
+The frozen model and demo cohort are in the repo, so the raw data is **not** needed to run the demo. Once built, the dashboard runs fully offline: the Atkinson Hyperlegible fonts are self-hosted in `frontend/public/fonts/` (SIL OFL 1.1).
 
 ### Option A: Docker (recommended)
 
@@ -153,7 +155,7 @@ cd frontend; npm ci; cd ..
 cd frontend; npm run dev
 ```
 
-Then press **Play** (or Space; ← / → step one hour), open a bed, toggle **Show ground truth**, and move the threshold slider. Deep links such as `/?t=30&truth=1` start the replay at an hour. A guided walkthrough is in [`reports/demo_script.md`](reports/demo_script.md).
+Then press **Play** (or Space; ← / → step one hour), open a bed (its label has *Label*, *Every measurement* and *Hour by hour* tabs), toggle **Show ground truth**, move the threshold slider, or click a numbered **tour stop** along the bottom. Deep links such as `/?t=30&truth=1` start the replay at an hour. A guided walkthrough is in [`reports/demo_script.md`](reports/demo_script.md).
 
 ### API
 
