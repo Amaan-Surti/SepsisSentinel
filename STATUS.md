@@ -11,6 +11,25 @@ Search space fixed **before** any new result was produced (dev data only, lockbo
 - A variant replaces the plain GRU only if it has the best nested ensemble utility **and** the paired patient bootstrap (1,000 resamples, seed 42) of variant-ensemble − plain-ensemble nested utility has a 95% CI above 0. Otherwise the plain GRU is kept.
 - Final GRU epochs = median best epoch (0-indexed) of the chosen GRU's 5 folds + 1; trained on all 32,268 dev patients.
 
+Results (all development data, nested 5-fold CV; `reports/tables/ensemble_dev_*.csv`):
+
+| Model (nested) | Utility | AUROC | Sensitivity | False alerts/day | Median lead |
+|---|---|---|---|---|---|
+| LightGBM | 0.4196 | 0.8421 | 85.46% | 0.478 | 23 h |
+| GRU (plain, hidden 128) | 0.3498 | 0.8069 | 80.39% | 0.455 | 23 h |
+| GRU hidden 64 | 0.3529 | 0.8119 | 78.13% | 0.400 | 22 h |
+| GRU + 32 LightGBM features | 0.3422 | 0.8110 | 78.73% | 0.442 | 24 h |
+| Ensemble, plain GRU | 0.4255 | 0.8438 | 85.00% | 0.429 | 23 h |
+| **Ensemble, GRU hidden 64 (served)** | **0.4327** | **0.8466** | **85.00%** | **0.415** | **23 h** |
+| Ensemble, GRU + 32 features | 0.4252 | 0.8457 | 85.12% | 0.441 | 23 h |
+
+Weight table for the served variant (h64), nested: w 0.5 → 0.4246; 0.6 → 0.4310; **0.7 → 0.4327 (chosen by all 5 folds)**; 0.8 → 0.4323; 0.9 → 0.4287. With the plain GRU the folds split 2 × 0.7 / 3 × 0.8 and the nested utility is 0.4255 (the old {0.3…0.7} grid gave 0.4264).
+Paired bootstrap (1,000 patient resamples, nested alerts): ensemble(h64) − LightGBM **+0.0131 [+0.0072, +0.0190]**; ensemble(h64) − ensemble(plain) +0.0072 [+0.0033, +0.0109] → h64 adopted; ensemble(top32) − ensemble(plain) −0.0002 [−0.0039, +0.0032] → not adopted; GRU − LightGBM −0.0698 [−0.0838, −0.0563].
+Caveat: the variant was picked as the best of three on the same dev folds, so its +0.0072 margin carries some selection optimism even though the rule was fixed in advance.
+
+Final ensemble (`models/ensemble_final/`): GRU hidden 64 trained on all 32,268 dev patients for 5 epochs (fold best epochs 4, 3, 2, 4, 4), focal α 0.5; GRU isotonic fit on its dev OOF; LightGBM keeps `models/final/calibrator.joblib` (identical to an isotonic refit on the same OOF, max gap 0.0); risk = 0.7 × LightGBM + 0.3 × GRU; policy τ = 0.03, k = 1, sticky = 0 (search_policy on the blended calibrated dev OOF; in-sample dev utility 0.4362). **Lockbox score: not measured.**
+Demo cohort: same 24 beds; LightGBM risks reproduce the original file exactly (max |Δ| 0.0); ensemble online vs batch max |Δrisk| 4.3e-7 (≤ 1e-5). Recomputed ensemble bed outcomes: 6 early, 2 flagged > 12 h early, 2 missed/late, 8 quiet, 6 with a false alert (LightGBM: 8 / 0 / 2 / 10 / 4 — the beds were originally picked with LightGBM's alerts).
+
 ## Task board
 | Task | Status | Notes |
 |---|---|---|
