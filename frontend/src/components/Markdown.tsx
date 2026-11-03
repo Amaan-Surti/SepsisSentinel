@@ -27,7 +27,7 @@ export function Markdown({ source }: { source: string }) {
     } else if (line.startsWith("#")) {
       const level = line.match(/^#+/)![0].length;
       const text = line.replace(/^#+\s*/, "");
-      out.push(level <= 2 ? <h4 key={i}>{inline(text)}</h4> : <h5 key={i}>{inline(text)}</h5>);
+      out.push(level <= 2 ? <h3 key={i}>{inline(text)}</h3> : <h4 key={i}>{inline(text)}</h4>);
       i++;
     } else if (line.trim().startsWith("|")) {
       const block: string[] = [];

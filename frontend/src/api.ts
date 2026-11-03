@@ -1,6 +1,7 @@
 // Typed fetch helpers for the SepsisSentinel API (all routes under /api).
 
 export type Level = "ALERT" | "WATCH" | "OK";
+export type ModelKind = "ensemble" | "lgbm";
 
 export interface Config {
   threshold: number;
@@ -8,7 +9,11 @@ export interface Config {
   sticky: number;
   max_hour: number;
   n_patients: number;
+  model_kind: ModelKind;
+  model_label: string;
   model_version: string;
+  weight_lgbm: number | null;
+  reasons_source: string;
   disclaimer: string;
 }
 
@@ -60,12 +65,39 @@ export interface PatientDetail {
 
 export type Row = Record<string, string | number | null>;
 
-export interface Metrics {
-  test_metrics: Row[];
+export interface LockboxTest {
+  label: string;
+  model: string;
+  note: string;
+  metrics: Row[];
   baselines: Row[];
+  subgroups: Row[];
+  policy: { threshold: number; k: number; sticky: number; utility_norm: number };
+}
+
+export interface DevCV {
+  label: string;
+  note: string;
+  comparison: Row[];
+  weights: Row[];
+  bootstrap: Row[];
+  final: Row[];
+  selection: {
+    weights: number[];
+    chosen_variant: string;
+    reason: string;
+    pooled_weight: number;
+    pooled_policy: { threshold: number; k: number; sticky: number };
+    nested_utility: number;
+  };
+}
+
+export interface Metrics {
+  active_model: ModelKind;
+  lockbox_test: LockboxTest;
+  dev_cv: DevCV | null;
   cross_hospital: Row[];
   ablations: Row[];
-  subgroups: Row[];
   dev_oof: Row[];
   threshold_curve: {
     threshold: number;
@@ -74,11 +106,12 @@ export interface Metrics {
     false_alerts_per_patient_day: number;
     median_lead_time_h: number;
   }[];
-  policy: { threshold: number; k: number; sticky: number; utility_norm: number };
+  policy: { threshold: number; k: number; sticky: number; utility_norm?: number };
 }
 
 export interface ModelCard {
   title: string;
+  model_kind: ModelKind;
   model_version: string;
   markdown: string;
   sections: Record<string, string>;
@@ -122,6 +155,6 @@ export const api = {
   figureUrl: (name: string) => `/api/figures/${name}`,
 };
 
-export const unitName = (u: number) => (u === 1 ? "MICU" : u === 2 ? "SICU" : "–");
+export const unitName = (u: number) => (u === 1 ? "MICU" : u === 2 ? "SICU" : "Unknown");
 export const sexName = (g: number) => (g === 1 ? "M" : "F");
 export const pct = (x: number, digits = 1) => `${(x * 100).toFixed(digits)}%`;

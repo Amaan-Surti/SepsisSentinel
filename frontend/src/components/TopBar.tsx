@@ -1,43 +1,61 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { pct } from "../api";
 import { SPEEDS, useReplay } from "../state/ReplayContext";
+import { BackIcon, ForwardIcon, PauseIcon, PlayIcon, ResetIcon } from "./Icons";
+
+const BADGE: Record<string, string> = { ensemble: "Ensemble", lgbm: "LightGBM" };
 
 export function TopBar() {
   const r = useReplay();
+  const { pathname } = useLocation();
   const max = r.config?.max_hour ?? 0;
+  const offPolicy = r.config != null && Math.abs(r.threshold - r.config.threshold) > 1e-9;
   return (
     <header className="topbar">
       <div className="brand">
         <span className="brand-mark" aria-hidden="true" />
         <span className="brand-name">SepsisSentinel</span>
-        <nav className="nav">
-          <NavLink to="/" end>
+        {r.config && (
+          <span
+            className={`model-badge badge-${r.config.model_kind}`}
+            title={`Served model: ${r.config.model_label} (${r.config.model_version})`}
+          >
+            <span className="visually-hidden">Served model: </span>
+            {BADGE[r.config.model_kind] ?? r.config.model_label}
+          </span>
+        )}
+        <nav className="nav" aria-label="Pages">
+          <NavLink to="/" className={({ isActive }) => (isActive || pathname.startsWith("/patient/") ? "active" : "")} end>
             Ward
           </NavLink>
           <NavLink to="/model">Model</NavLink>
         </nav>
       </div>
 
-      <div className="controls" aria-label="Replay controls">
-        <div className="clock">
+      <div className="controls" role="group" aria-label="Replay controls">
+        <div className="clock" aria-live="off">
           <span className="clock-label">ICU hour</span>
-          <span className="clock-value mono">
+          <span className="clock-value num-tab">
             {r.t}
             <span className="clock-max"> / {max}</span>
           </span>
         </div>
         <div className="btn-group">
-          <button onClick={r.reset} title="Reset to hour 0">
-            ⏮ Reset
+          <button onClick={r.reset} title="Back to hour 0">
+            <ResetIcon />
+            Reset
           </button>
-          <button onClick={() => r.step(-1)} disabled={r.t <= 0} title="Step back 1 hour">
-            −1h
+          <button onClick={() => r.step(-1)} disabled={r.t <= 0} title="Back 1 hour (← key)" aria-label="Back 1 hour">
+            <BackIcon />
+            1 h
           </button>
-          <button className="primary play" onClick={r.togglePlay} disabled={!r.config} aria-pressed={r.playing}>
-            {r.playing ? "❚❚ Pause" : "▶ Play"}
+          <button className="primary play" onClick={r.togglePlay} disabled={!r.config} title="Play or pause (Space)">
+            {r.playing ? <PauseIcon /> : <PlayIcon />}
+            {r.playing ? "Pause" : "Play"}
           </button>
-          <button onClick={() => r.step(1)} disabled={r.t >= max} title="Step forward 1 hour">
-            +1h
+          <button onClick={() => r.step(1)} disabled={r.t >= max} title="Forward 1 hour (→ key)" aria-label="Forward 1 hour">
+            1 h
+            <ForwardIcon />
           </button>
         </div>
         <label className="field">
@@ -50,25 +68,27 @@ export function TopBar() {
             ))}
           </select>
         </label>
-        <label className="field threshold">
-          <span>
-            Threshold <b className="mono">{pct(r.threshold, 1)}</b>
-            {r.config && Math.abs(r.threshold - r.config.threshold) > 1e-9 && (
+        <div className="field threshold">
+          <span className="threshold-head">
+            <label htmlFor="threshold">Alert threshold</label>
+            <b className="num-tab">{pct(r.threshold, 1)}</b>
+            {offPolicy && (
               <button className="link" onClick={() => r.setThreshold(r.config!.threshold)} title="Back to the policy threshold">
-                policy {pct(r.config.threshold, 1)}
+                reset to policy {pct(r.config!.threshold, 1)}
               </button>
             )}
           </span>
           <input
+            id="threshold"
             type="range"
             min={0.01}
             max={0.5}
             step={0.005}
             value={r.threshold}
             onChange={(e) => r.setThreshold(Number(e.target.value))}
-            aria-label="Alert threshold"
+            aria-valuetext={pct(r.threshold, 1)}
           />
-        </label>
+        </div>
         <label className="toggle">
           <input type="checkbox" checked={r.showTruth} onChange={(e) => r.setShowTruth(e.target.checked)} />
           <span>Show ground truth (demo)</span>
