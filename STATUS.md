@@ -1,8 +1,8 @@
 # STATUS — SepsisSentinel
-Last updated: 2026-10-19 by Claude Opus 5.5
+Last updated: 2026-11-02 by Claude Opus 5.5
 
 ## Current task
-Phases 7 and 8 complete. Docker stack built and verified (both containers healthy); QA checklist 10/10 passed on the Docker deployment; slides exported to PPTX/PDF. Human to-do: record the 60-s fallback demo video.
+Phase 6 (GRU + ensemble) run on dev folds only, 2026-11-02: GRU alone loses to LightGBM; LightGBM+GRU ensemble gains +0.0068 nested dev utility. Not served, lockbox not re-evaluated (see Phase 6 notes). Phases 7 and 8 complete. Docker stack built and verified (both containers healthy); QA checklist 10/10 passed on the Docker deployment; slides exported to PPTX/PDF. Human to-do: record the 60-s fallback demo video.
 
 ## Task board
 | Task | Status | Notes |
@@ -33,7 +33,7 @@ Phases 7 and 8 complete. Docker stack built and verified (both containers health
 | P5.T4 subgroups | DONE | dev OOF subgroups computed by hospital, gender, age, unit; subgroups_dev.csv saved |
 | P5.T5 MLflow | DONE | Final model artifacts, policy, parameters logged to MLflow experiment 'sepsis' |
 | P5.T6 LOCKBOX TEST (once) | DONE | 8,068 test patients evaluated once with 1,000 bootstrap resamples; utility=0.4270 [0.3929, 0.4604], AUROC=0.8475 [0.7965, 0.8990], sens=87.54%, lead=29.0h |
-| P6.T1–T3 GRU + ensemble (optional) | SKIPPED/OPTIONAL | Local LightGBM achieves superior calibrated utility; ready for Phase 7 product serving |
+| P6.T1–T3 GRU + ensemble (optional) | DONE (dev only) | `models/gru/`, `reports/tables/gru_dev_comparison*.csv`. Nested dev utility: LightGBM 0.4196, GRU 0.3498, ensemble 0.4264. Lockbox not used; API still serves LightGBM |
 | P7.T1 demo cohort | DONE | 24 lockbox-test beds (stay 24–96h, seed 42): 8 early (lead 4–12h), 2 missed/late, 10 quiet, 4 false-alert; 1,022 rows; online path == batch features (max diff 0.0) |
 | P7.T2 backend | DONE | FastAPI `backend/app/` (7 endpoints); 14 API tests pass incl. predict-consistency (<1e-6); predict 70-h stay ≈315 ms, ward ≈14 ms |
 | P7.T3 frontend | DONE | Vite 5.4.8 + React 18 + TS + Recharts; Ward / Patient / Model pages, replay clock, threshold slider, show-truth; `npm run build` clean; checked in Chrome at 1280×720 |
@@ -111,9 +111,22 @@ Phases 7 and 8 complete. Docker stack built and verified (both containers health
   - Added `GET /api/figures/{name}` (whitelisted test PNGs) so the Model page can show the real calibration and ROC/PR figures.
   - Threshold slider range 0.01–0.50 (human's Phase-7 brief) instead of plan's 0.05–0.95, because the policy τ = 0.03 lies outside the plan's range and the demo max risk is 0.17.
 
+- **Phase 6 (2026-11-02, Claude):**
+  - Run locally on an RTX 4070 (torch 2.6.0+cu124 installed in `.venv`, not added to requirements.txt or the backend image) instead of Colab. ~4 min training for 5 folds plus the focal-alpha check.
+  - Deviation from §P6: **no lockbox evaluation**. The plan's "evaluate on test once" conflicts with the CLAUDE.md invariant that the lockbox was evaluated strictly once in P5.T6. All Phase 6 numbers are dev OOF only.
+  - Deviation from §P6: 5-fold CV on the same folds as LightGBM (plan: fold 0 only), so OOF rows match LightGBM's 1,241,132 rows 1:1. Normalisation stats per fold from that fold's training patients. Input is 111 dims (the plan's own list sums to 111, not 108).
+  - Focal alpha chosen on fold 0 val AUPRC: 0.50 (0.1189) vs 0.75 (0.1125) vs 0.90 (0.1129). Best epochs 2–4 of up to 30.
+  - Two scores reported. *Pooled* = calibration + policy fit on the same OOF rows (how 0.4267 was produced; reproduced exactly). *Nested* = for each fold, isotonic, blend weight and policy fitted on the other 4 folds only.
+  - Results (pooled / nested utility): LightGBM 0.4267 / 0.4196; GRU 0.3633 / 0.3498; ensemble (0.7 LightGBM + 0.3 GRU, all folds picked 0.7) 0.4319 / 0.4264. Nested false alerts/patient-day 0.478 → 0.420; sensitivity 85.5% → 84.9%; median lead 23 h for both.
+  - Paired patient bootstrap (1,000, nested alerts): GRU − LightGBM −0.0698 [−0.0838, −0.0563]; ensemble − LightGBM +0.0068 [+0.0016, +0.0125], better in 99.5% of resamples.
+  - Caveat: the chosen weight 0.7 sits on the upper edge of the plan's grid {0.3…0.7}; the grid was not widened after seeing results.
+  - Not adopted: per §P6.T3 the API serves LightGBM regardless, `models/final/` is unchanged, and no test-set claim is made for the ensemble.
+  - Corrected the old P6 board note ("LightGBM achieves superior calibrated utility"), which was written without a GRU run.
+
 ## Blockers / questions for the human
 - Record the 60-s fallback screen recording for the demo (see `reports/demo_script.md`).
-- Tests: 67/67 pass (53 `tests/` + 14 `backend/tests/`); ruff clean on src, tests, backend.
+- Tests: 72/72 pass (58 `tests/` incl. 5 GRU tests + 14 `backend/tests/`); ruff clean on src, tests, backend.
+- Decide whether to commit Phase 6 (GRU code + dev tables) and whether to mention the ensemble in the report/slides as a dev-only finding.
 
 ## Experiment log
 | Date | Run | Change | Key metric | Kept? |
@@ -137,6 +150,4 @@ Phases 7 and 8 complete. Docker stack built and verified (both containers health
 | 2026-10-18 | P5.T5 | MLflow final logging | Parameters, metrics, policy & artifacts registered | Yes |
 | 2026-10-19 | P7.T1 | Demo cohort (24 beds) | online vs batch max diff 0.0 | Yes |
 | 2026-10-18 | P5.T6 | Single Lockbox Test (8,068 pts) | **Utility = 0.4270 [0.3929, 0.4604], AUROC = 0.8475, Sens = 87.54%, Lead = 29.0h** | **FINAL** |
-
-
-
+| 2026-11-02 | P6.T1–T3 | GRU (5-fold, dev) + LightGBM/GRU ensemble | Nested dev utility LGBM 0.4196, GRU 0.3498, ensemble 0.4264 (Δ +0.0068 [+0.0016, +0.0125]) | Dev only |
