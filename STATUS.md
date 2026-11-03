@@ -4,6 +4,13 @@ Last updated: 2026-11-02 by Claude Opus 5.5
 ## Current task
 Phase 6 (GRU + ensemble) run on dev folds only, 2026-11-02: GRU alone loses to LightGBM; LightGBM+GRU ensemble gains +0.0068 nested dev utility. Not served, lockbox not re-evaluated (see Phase 6 notes). Phases 7 and 8 complete. Docker stack built and verified (both containers healthy); QA checklist 10/10 passed on the Docker deployment; slides exported to PPTX/PDF. Human to-do: record the 60-s fallback demo video.
 
+## Phase 9 — ensemble served + UI (branch `feature/ensemble-and-ui`, started 2026-11-03)
+Search space fixed **before** any new result was produced (dev data only, lockbox untouched):
+- Blend weight for LightGBM w ∈ {0.5, 0.6, 0.7, 0.8, 0.9} (widened once from {0.3…0.7}, where 0.7 sat on the edge). Chosen inside the nested scheme: for each outer fold, isotonic calibration, w and the alert policy are fit on the other 4 folds; ties go to the lower w. Every weight is reported.
+- GRU variants (decided up front: both are run and reported, whatever the outcome): (a) hidden 64; (b) the 32 highest-gain LightGBM features appended to the GRU input (for fold k, taken from `models/lgbm_tuned/fold{k}.txt`, which never saw fold k; columns already in the GRU input excluded; z-scored on the training folds). Both use focal alpha 0.5 from `models/gru/meta.json`, the same folds, seed and early stopping.
+- A variant replaces the plain GRU only if it has the best nested ensemble utility **and** the paired patient bootstrap (1,000 resamples, seed 42) of variant-ensemble − plain-ensemble nested utility has a 95% CI above 0. Otherwise the plain GRU is kept.
+- Final GRU epochs = median best epoch (0-indexed) of the chosen GRU's 5 folds + 1; trained on all 32,268 dev patients.
+
 ## Task board
 | Task | Status | Notes |
 |---|---|---|
